@@ -149,7 +149,7 @@ int main(int argc, const char **argv) {
   cpu_set_t sets[TOTAL_CORE];
 
   for (int i = 0; i < TOTAL_CORE; ++i) {
-    fprintf(stderr, "create thread %d\n", i);
+    // fprintf(stderr, "create thread %d\n", i);
     CPU_ZERO(&sets[i]);
     CPU_SET(i, &sets[i]);
 
