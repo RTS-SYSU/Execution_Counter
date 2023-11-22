@@ -1,0 +1,37 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O3",
+      "-Wall",
+      "-Werror",
+      "-fPIC",
+      "-Iinclude/",
+      "-c",
+      "-o",
+      "lib/framework.o",
+      "lib/framework.c"
+    ],
+    "directory": "/home/lewis/Execution_Counter",
+    "file": "/home/lewis/Execution_Counter/lib/framework.c",
+    "output": "/home/lewis/Execution_Counter/lib/framework.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-O3",
+      "-Wall",
+      "-Werror",
+      "-fPIC",
+      "-Iinclude/",
+      "-Itest/",
+      "-c",
+      "-o",
+      "driver.o",
+      "driver.c"
+    ],
+    "directory": "/home/lewis/Execution_Counter",
+    "file": "/home/lewis/Execution_Counter/driver.c",
+    "output": "/home/lewis/Execution_Counter/driver.o"
+  }
+]
