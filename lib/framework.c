@@ -30,9 +30,6 @@ static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
 }
 #endif
 
-// how to create the args
-// args[0]: a uint64_t, how many function to run
-// then is the function name, pointer and it arguments
 void *thread_handler(void *thread_args) {
   // use the barrier to make sure all threads are ready
   pthread_barrier_wait(&bar);
@@ -46,7 +43,7 @@ void *thread_handler(void *thread_args) {
     // function name
     const char *functionName = (const char *)current->funcname;
     // function pointer
-    fp func = (void (*)(void *))current->funcptr;
+    fp func = (fp)current->funcptr;
     // function arguments
     void *arg = (void *)current->args;
     // fprintf(stderr, "function: %p, function name: %s\n", func, functionName);
@@ -62,8 +59,8 @@ void *thread_handler(void *thread_args) {
 }
 
 void start_test(uint64_t core, test_args *args) {
-  pthread_t threads[core];
   pthread_barrier_init(&bar, NULL, core);
+  pthread_t threads[core];
   cpu_set_t sets[core];
 
   for (uint64_t i = 0; i < core; ++i) {
@@ -73,13 +70,14 @@ void start_test(uint64_t core, test_args *args) {
     int rc =
         pthread_create(&threads[i], NULL, thread_handler, (void *)(args + i));
     if (rc != 0) {
-      fprintf(stderr, "%lu\n", i);
+      fprintf(stderr, "Error calling pthread_create.(Thread num: %lu)\n", i);
       exit(EXIT_FAILURE);
     }
 
     rc = pthread_setaffinity_np(threads[i], sizeof(cpu_set_t), &sets[i]);
     if (rc != 0) {
-      fprintf(stderr, "Error calling pthread_setaffinity_np: %lu\n", i);
+      fprintf(stderr,
+              "Error calling pthread_setaffinity_np.(Thread num: %lu)\n", i);
       exit(EXIT_FAILURE);
     }
   }
