@@ -14,7 +14,7 @@
 
 pthread_barrier_t bar;
 
-#if defined(__x86_64__)
+#ifdef __x86_64__
 static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
   uint32_t lo, hi;
   __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
