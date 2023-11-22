@@ -25,7 +25,7 @@ We make it more easy to use, for now, all you need to do is:
 
 2. Modified `driver.c`, change the macro `CORE` to your system core, and then call `add_function` to do the task set.
 
-More specifically, first call `create_test_args(CORE)` to get an array of different core task info, then call `add_function(&arg[core_number], func_name, func_ptr, func_args)` to add the function to specific core
+    More specifically, first call `create_test_args(CORE)` to get an array of different core task info, then call `add_function(&arg[core_number], func_name, func_ptr, func_args)` to add the function to specific core
 
 3. call `start_test(CORE, arg)` to start
 
@@ -35,7 +35,13 @@ We provide a simple example in `driver.c`, change it by your need.
 
 ## Build
 
-Just simply run `make` in the root directory of this project
+Just simply run `make` in the root directory of this project.
+
+If you need to change the test function flags, use
+
+```bash
+make TEST_FLAGS=<your flags>
+```
 
 ## Run
 
