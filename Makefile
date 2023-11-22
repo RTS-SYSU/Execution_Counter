@@ -3,7 +3,8 @@ DRIVER_FLAGS := -O0 #-march=native
 CC_FLAGS := -O0 -Wall -Werror -fPIC -shared
 LIBINCLUDE := -Iinclude/
 DRIVERINCLUDE := -Itest/
-TEST_FLAGS := -O0 -fPIC -shared
+TEST_LD_FLAGS := -fPIC -shared
+TEST_FLAGS := -O0
 
 DRIVERSRC := $(wildcard *.c)
 DRIVEROBJ := $(patsubst %.c, %.o, $(DRIVERSRC))
@@ -34,10 +35,10 @@ $(LIBOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
-	$(CC) $(TEST_FLAGS) -o $@ $^
+	$(CC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(CC) $(TEST_FLAGS) -c $< -o $@
+	$(CC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -c $< -o $@
 
 clean: 
 	rm -rf $(DRIVER)
