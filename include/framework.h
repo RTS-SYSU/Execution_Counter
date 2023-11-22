@@ -19,6 +19,12 @@ typedef struct {
   uint64_t funcname;
   uint64_t funcptr;
   uint64_t args;
+} func_args;
+
+typedef struct {
+  uint64_t size;
+  uint64_t current;
+  func_args *funcs;
 } test_args;
 
 /**
@@ -26,9 +32,17 @@ typedef struct {
  */
 void *thread_handler(void *arg);
 
-void start_test(uint64_t core, test_args **args);
+void start_test(uint64_t core, test_args *args);
 
-void create_arg(test_args *arg, const char *funcname, fp funcptr, void *args);
+void add_function(test_args *args,
+                  const char *funcname,
+                  fp funcptr,
+                  void *funargc);
+
+test_args *create_test_args(uint64_t core);
+
+void free_test_args(test_args *args);
+
 #ifdef __cplusplus
 }
 #endif

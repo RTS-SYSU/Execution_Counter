@@ -1,4 +1,5 @@
 # Execution_Counter
+
 A simple execution time counter use to eval [llvmta](https://github.com/RTS-SYSU/llvmta)
 
 # Usage
@@ -18,30 +19,28 @@ function: 0x55c0be2d7290, function name: my_loop4, ticks: 592628
 
 ## Modification
 
-if you need to change the number of cores or change the tasks, please follow the steps below:
+We make it more easy to use, for now, all you need to do is:
 
-1. change the `#define CORE_NUM 4` to the number of cores you want to use
+1. Add your function in `test/funcimpl.c` and `test/funcdef.h`
 
-2. Add your task function, for now, all task functions should be like `void func(void* args)`
+2. Modified `driver.c`, change the macro `CORE` to your system core, and then call `add_function` to do the task set.
 
-3. Add your task function to the `func` array in `main` function
+More specifically, first call `create_test_args(CORE)` to get an array of different core task info, then call `add_function(&arg[core_number], func_name, func_ptr, func_args)` to add the function to specific core
 
-4. Add your task function name to the `funcname` array in `main` function
+3. call `start_test(CORE, arg)` to start
 
-5. Change the `args` array in `main` function, the format must follow: 
+4. call `free_test_args(arg)` to free the args we create in step 2.
 
-```c
-uint64_t args[TOTAL_CORE][/*Fill this by your self*/] = {
-    {
-        (uint64_t)1,                // how man functions in this core
-        (uint64_t)funcname[0],      // function name
-        (uint64_t)func[0],          // function address, a function pointer
-        (uint64_t)NULL,             // function args, if no args, set to NULL
-    },
-    /* Add other cores */
-};
-```
+We provide a simple example in `driver.c`, change it by your need.
 
 ## Build
 
 Just simply run `make` in the root directory of this project
+
+## Run
+
+Please run it by 
+
+```bash
+LD_LIBRARY_PATH=. ./driver
+```
