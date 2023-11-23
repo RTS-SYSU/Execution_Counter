@@ -10,12 +10,12 @@ DRIVERSRC := $(wildcard *.c)
 DRIVEROBJ := $(patsubst %.c, %.o, $(DRIVERSRC))
 DRIVER := driver
 
-LIB := $(wildcard lib/*.c)
-LIBOBJ := $(patsubst %.c, %.o, $(LIB))
+LIBSRC := $(wildcard lib/*.c)
+LIBOBJ := $(patsubst %.c, %.o, $(LIBSRC))
 LIB := libtest.so
 
-TEST := $(wildcard test/*.c)
-TESTOBJ := $(patsubst %.c, %.o, $(TEST))
+TESTSRC := $(wildcard test/*.c)
+TESTOBJ := $(patsubst %.c, %.o, $(TESTSRC))
 TESTLIB := libtestfunc.so
 
 .PHONE: all clean
