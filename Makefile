@@ -3,6 +3,9 @@ TEST_CC ?= clang
 
 CC_FLAGS := -O3 -Wall -Werror -march=native
 
+# Note: by default, we do not enable address sanitizer
+MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
+
 LIBINCLUDE := -Iinclude/
 DRIVERINCLUDE := -Itest/
 

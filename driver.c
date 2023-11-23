@@ -22,7 +22,7 @@ int main(void) {
 
   start_test(CORE, args);
 
-  free_test_args(args);
+  free_test_args(args, CORE);
 
   return 0;
 }

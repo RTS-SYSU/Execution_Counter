@@ -53,8 +53,8 @@ void *thread_handler(void *thread_args) {
     start = getCPUCycle();
     func(arg);
     end = getCPUCycle();
-    fprintf(stderr, "function: %p, function name: %s, ticks: %lu\n", func,
-            functionName, end - start);
+    fprintf(stderr, "Core: %lu, function: %p, function name: %s, ticks: %lu\n",
+            args->core, func, functionName, end - start);
     current++;
   }
   return (void *)0;
@@ -117,13 +117,19 @@ test_args *create_test_args(uint64_t count) {
     fprintf(stderr, "malloc failed: %s\n", strerror(errno));
     exit(EXIT_FAILURE);
   }
-  args->size = 0;
-  args->current = 0;
-  args->funcs = NULL;
+
+  for (uint64_t i = 0; i < count; ++i) {
+    args[i].core = i;
+    args[i].size = 0;
+    args[i].current = 0;
+    args[i].funcs = NULL;
+  }
   return args;
 }
 
-void free_test_args(test_args *args) {
-  free(args->funcs);
+void free_test_args(test_args *args, uint64_t core) {
+  for (uint64_t i = 0; i < core; ++i) {
+    free(args[i].funcs);
+  }
   free(args);
 }
