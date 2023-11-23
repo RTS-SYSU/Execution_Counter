@@ -1,4 +1,5 @@
 CC := gcc
+TESTCC ?= clang
 DRIVER_FLAGS := -O3 -march=native
 CC_FLAGS := -O3 -Wall -Werror -fPIC -shared -lpthread -march=native
 LIBINCLUDE := -Iinclude/
@@ -35,10 +36,10 @@ $(LIBOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
-	$(CC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -o $@ $^
+	$(TESTCC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(CC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -c $< -o $@
+	$(TESTCC) $(TEST_FLAGS) -c $< -o $@
 
 clean: 
 	rm -rf $(DRIVER)
