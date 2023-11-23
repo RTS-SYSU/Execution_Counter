@@ -12,6 +12,9 @@ int main(void) {
   test_args *args = create_test_args(CORE);
 
   for (int i = 0; i < CORE; ++i) {
+    if (i == 0) {
+      add_function(args + i, func_name[i], func[i], NULL);
+    }
     add_function(args + i, func_name[i], func[i], NULL);
   }
 

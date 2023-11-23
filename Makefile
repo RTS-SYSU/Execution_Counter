@@ -1,6 +1,6 @@
 CC := gcc
-DRIVER_FLAGS := -O0 #-march=native
-CC_FLAGS := -O0 -Wall -Werror -fPIC -shared -lpthread
+DRIVER_FLAGS := -O3 -march=native
+CC_FLAGS := -O3 -Wall -Werror -fPIC -shared -lpthread -march=native
 LIBINCLUDE := -Iinclude/
 DRIVERINCLUDE := -Itest/
 TEST_LD_FLAGS := -fPIC -shared

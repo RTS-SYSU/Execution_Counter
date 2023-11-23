@@ -55,6 +55,7 @@ void *thread_handler(void *thread_args) {
     end = getCPUCycle();
     fprintf(stderr, "function: %p, function name: %s, ticks: %lu\n", func,
             functionName, end - start);
+    current++;
   }
   return (void *)0;
 }
