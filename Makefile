@@ -1,10 +1,13 @@
 CC := gcc
-TESTCC ?= clang
-DRIVER_FLAGS := -O3 -march=native
-CC_FLAGS := -O3 -Wall -Werror -fPIC -shared -lpthread -march=native
+TEST_CC ?= clang
+
+CC_FLAGS := -O3 -Wall -Werror -march=native
+
 LIBINCLUDE := -Iinclude/
 DRIVERINCLUDE := -Itest/
-TEST_LD_FLAGS := -fPIC -shared
+
+LD_FLAGS := -fPIC -shared
+
 TEST_FLAGS := -O0
 
 DRIVERSRC := $(wildcard *.c)
@@ -24,22 +27,22 @@ TESTLIB := libtestfunc.so
 all: $(DRIVER)
 
 $(DRIVER): $(LIB) $(TESTLIB) $(DRIVEROBJ)
-	$(CC) $(DRIVER_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -ltest
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -ltest
 
 $(DRIVEROBJ): %.o:%.c
-	$(CC) $(DRIVER_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
 
 $(LIB): $(LIBOBJ)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -o $@ $^
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -o $@ $^
 
 $(LIBOBJ): %.o:%.c
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
-	$(TESTCC) $(TEST_FLAGS) $(TEST_LD_FLAGS) -o $@ $^
+	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(TESTCC) $(TEST_FLAGS) -c $< -o $@
+	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
 
 clean: 
 	rm -rf $(DRIVER)
