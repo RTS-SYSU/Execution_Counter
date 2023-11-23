@@ -24,7 +24,6 @@ static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
 #endif
 
 #ifdef __aarch64__
-// TODO: implement this, for aarch64
 static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
   uint64_t val;
   __asm__ __volatile__("mrs %0, pmccntr_el0" : "=r"(val));
