@@ -12,7 +12,7 @@ DRIVER := driver
 
 LIB := $(wildcard lib/*.c)
 LIBOBJ := $(patsubst %.c, %.o, $(LIB))
-LIB := libframe.so
+LIB := libtest.so
 
 TEST := $(wildcard test/*.c)
 TESTOBJ := $(patsubst %.c, %.o, $(TEST))
@@ -23,7 +23,7 @@ TESTLIB := libtestfunc.so
 all: $(DRIVER)
 
 $(DRIVER): $(LIB) $(TESTLIB) $(DRIVEROBJ)
-	$(CC) $(DRIVER_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -lframe
+	$(CC) $(DRIVER_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -ltest
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(DRIVER_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
