@@ -15,18 +15,18 @@
 pthread_barrier_t bar;
 
 #ifdef __x86_64__
-static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
+static inline __attribute__((always_inline)) ticks getCPUCycle() {
   uint32_t lo, hi;
-  __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
+  asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
 
   return ((ticks)hi << 32) | lo;
 }
 #endif
 
 #ifdef __aarch64__
-static __inline__ __attribute__((always_inline)) ticks getCPUCycle() {
+static inline __attribute__((always_inline)) ticks getCPUCycle() {
   uint64_t val;
-  __asm__ __volatile__("mrs %0, pmccntr_el0" : "=r"(val));
+  asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
 }
 #endif
