@@ -6,7 +6,7 @@
 #define CORE 4
 
 int main(void) {
-  void (*func[])(void *) = {my_loop, my_loop2, my_loop3, my_loop4};
+  fp func[] = {my_loop, my_loop2, my_loop3, my_loop4};
   const char *func_name[] = {"my_loop", "my_loop2", "my_loop3", "my_loop4"};
 
   test_args *args = create_test_args(CORE);
