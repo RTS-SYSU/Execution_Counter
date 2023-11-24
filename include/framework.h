@@ -19,12 +19,12 @@ typedef struct {
   uint64_t funcname;
   uint64_t funcptr;
   uint64_t args;
+  uint64_t result;
 } func_args;
 
 typedef struct {
   uint64_t size;
   uint64_t current;
-  uint64_t core;
   func_args *funcs;
 } test_args;
 
@@ -43,6 +43,8 @@ void add_function(test_args *args,
 test_args *create_test_args(uint64_t core);
 
 void free_test_args(test_args *args, uint64_t core);
+
+void get_result(test_args *args, uint64_t core);
 
 #ifdef __cplusplus
 }

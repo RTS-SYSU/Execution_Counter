@@ -15,7 +15,7 @@
 pthread_barrier_t bar;
 
 #ifdef __x86_64__
-static inline __attribute__((always_inline)) ticks getCPUCycle() {
+static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   uint32_t lo, hi;
   asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
 
@@ -24,7 +24,7 @@ static inline __attribute__((always_inline)) ticks getCPUCycle() {
 #endif
 
 #ifdef __aarch64__
-static inline __attribute__((always_inline)) ticks getCPUCycle() {
+static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   uint64_t val;
   asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
@@ -40,9 +40,6 @@ void *thread_handler(void *thread_args) {
   func_args *current = args->funcs;
 
   for (uint64_t i = 0; i < total; ++i) {
-    // get the base address of the current function
-    // function name
-    const char *functionName = (const char *)current->funcname;
     // function pointer
     fp func = (fp)current->funcptr;
     // function arguments
@@ -50,11 +47,15 @@ void *thread_handler(void *thread_args) {
     // fprintf(stderr, "function: %p, function name: %s\n", func, functionName);
 
     ticks start, end;
-    start = getCPUCycle();
+    start = get_CPU_Cycle();
     func(arg);
-    end = getCPUCycle();
-    fprintf(stderr, "Core: %lu, function: %p, function name: %s, ticks: %lu\n",
-            args->core, func, functionName, end - start);
+    end = get_CPU_Cycle();
+    current->result = (end - start);
+    // may be we should not print here, due to we have to switch to the kernel
+    // from user space
+    // fprintf(stderr, "Core: %lu, function: %p, function name: %s, ticks :
+    // %lu\n",
+    //         args->core, func, functionName, end - start);
     current++;
   }
   return (void *)0;
@@ -87,12 +88,15 @@ void start_test(uint64_t core, test_args *args) {
   for (uint64_t i = 0; i < core; ++i) {
     pthread_join(threads[i], NULL);
   }
+
+  get_result(args, core);
 }
 
 void set_arg(func_args *arg, const char *funcname, fp funcptr, void *args) {
   arg->funcname = (uint64_t)funcname;
   arg->funcptr = (uint64_t)funcptr;
   arg->args = (uint64_t)args;
+  arg->result = 0l;
 }
 
 void add_function(test_args *args,
@@ -119,7 +123,6 @@ test_args *create_test_args(uint64_t count) {
   }
 
   for (uint64_t i = 0; i < count; ++i) {
-    args[i].core = i;
     args[i].size = 0;
     args[i].current = 0;
     args[i].funcs = NULL;
@@ -132,4 +135,16 @@ void free_test_args(test_args *args, uint64_t core) {
     free(args[i].funcs);
   }
   free(args);
+}
+
+void get_result(test_args *args, uint64_t core) {
+  for (uint64_t i = 0; i < core; ++i) {
+    func_args *current = args[i].funcs;
+    for (uint64_t j = 0; j < args[i].current; ++j) {
+      fprintf(stderr,
+              "Core: %lu, function: %p, function name: %s, ticks: %lu\n", i,
+              (fp)current[j].funcptr, (char *)current[j].funcname,
+              current[j].result);
+    }
+  }
 }
