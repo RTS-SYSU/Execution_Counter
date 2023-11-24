@@ -17,9 +17,9 @@ DRIVERSRC := $(wildcard *.c)
 DRIVEROBJ := $(patsubst %.c, %.o, $(DRIVERSRC))
 DRIVER := driver
 
-LIBSRC := $(wildcard lib/*.c)
-LIBOBJ := $(patsubst %.c, %.o, $(LIBSRC))
-LIB := libtest.so
+FRAMESRC := $(wildcard lib/framework/*.c)
+FRAMEOBJ := $(patsubst %.c, %.o, $(FRAMESRC))
+FRAMELIB := libtest.so
 
 TESTSRC := $(wildcard test/*.c)
 TESTOBJ := $(patsubst %.c, %.o, $(TESTSRC))
@@ -29,16 +29,16 @@ TESTLIB := libtestfunc.so
 
 all: $(DRIVER)
 
-$(DRIVER): $(LIB) $(TESTLIB) $(DRIVEROBJ)
+$(DRIVER): $(FRAMELIB) $(TESTLIB) $(DRIVEROBJ)
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -ltest
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
 
-$(LIB): $(LIBOBJ)
+$(FRAMELIB): $(FRAMEOBJ)
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -o $@ $^
 
-$(LIBOBJ): %.o:%.c
+$(FRAMEOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
@@ -50,7 +50,7 @@ $(TESTOBJ): %.o:%.c
 clean: 
 	rm -rf $(DRIVER)
 	rm -rf $(DRIVEROBJ)
-	rm -rf $(LIB)
-	rm -rf $(LIBOBJ)
+	rm -rf $(FRAMELIB)
+	rm -rf $(FRAMEOBJ)
 	rm -rf $(TESTLIB)
 	rm -rf $(TESTOBJ)
