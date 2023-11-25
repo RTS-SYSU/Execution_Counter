@@ -89,13 +89,13 @@ void start_test(uint64_t core, test_args *args) {
     pthread_join(threads[i], NULL);
   }
 
-  get_result(args, core);
+  // get_result(args, core);
 }
 
 void set_arg(func_args *arg, const char *funcname, fp funcptr, void *args) {
-  arg->funcname = (uint64_t)funcname;
-  arg->funcptr = (uint64_t)funcptr;
-  arg->args = (uint64_t)args;
+  arg->funcname = funcname;
+  arg->funcptr = funcptr;
+  arg->args = args;
   arg->result = 0l;
 }
 
