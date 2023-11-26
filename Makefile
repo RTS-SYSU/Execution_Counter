@@ -1,7 +1,7 @@
 CC := gcc
 TEST_CC ?= clang
 
-CC_FLAGS := -O3 -Wall -Werror -march=native
+CC_FLAGS := -O0 -g -Wall -Werror -march=native # -fsanitize=address 
 
 # Note: by default, we do not enable address sanitizer
 MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
@@ -31,14 +31,14 @@ JSONLIB := libjson.so
 
 all: $(DRIVER)
 
-$(DRIVER): $(DRIVEROBJ) $(FRAMELIB) $(TESTLIB) $(JSONLIB)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ljson -ldl
+$(DRIVER): $(DRIVEROBJ) $(JSONLIB) $(FRAMELIB) $(TESTLIB)
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ljson
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
 
 $(FRAMELIB): $(FRAMEOBJ)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -o $@ $^
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -ldl -L. -ljson -o $@ $^
 
 $(FRAMEOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -c $< -o $@
@@ -50,8 +50,8 @@ $(TESTOBJ): %.o:%.c
 	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
 
 $(JSONLIB):
-	$(MAKE) -C lib/json
-	@ln -s lib/json/libcjson.so libjson.so
+	$(MAKE) -C lib/json lib
+	@ln -s lib/json/libjson.so libjson.so
 
 clean: 
 	rm -rf $(DRIVER)

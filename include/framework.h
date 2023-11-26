@@ -6,6 +6,7 @@
 #endif
 
 #include <stdint.h>
+#include "jsonobj.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,20 +37,22 @@ typedef void (*fp)(void *);
 // } func_arg;
 
 typedef struct {
-  // Note that, func name will not be freed, please manage it by yourself
-  const char *funcname;
+  // Note that, func name will be freed by framework
+  char *funcname;
   // function pointer
   fp funcptr;
   // function arguments, same as above, please manage it by yourself
   void *args;
   // ticks
-  uint64_t result;
+  uint64_t results;
 } func_args;
 
 typedef struct {
   uint64_t size;
   uint64_t current;
   func_args *funcs;
+  // json handler, not freed by framework
+  json_node *result_handler;
 } test_args;
 
 /**
@@ -59,16 +62,18 @@ void *thread_handler(void *arg);
 
 void start_test(uint64_t core, test_args *args);
 
-void add_function(test_args *args,
-                  const char *funcname,
-                  fp funcptr,
-                  void *funargc);
+void add_function(test_args *args, char *funcname, fp funcptr, void *funargc);
 
 test_args *create_test_args(uint64_t core);
 
-void free_test_args(test_args *args, uint64_t core);
+test_args *parse_from_json(const char *json_file,
+                           const char *libname,
+                           uint64_t *core,
+                           json_node *result);
 
-void get_result(test_args *args, uint64_t core);
+void free_test_args(uint64_t core, test_args *args);
+
+void get_result(uint64_t core, test_args *args, uint64_t count);
 
 #ifdef __cplusplus
 }
