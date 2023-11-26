@@ -6,7 +6,7 @@ CC_FLAGS := -O3 -Wall -Werror -march=native
 # Note: by default, we do not enable address sanitizer
 MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
 
-LIBINCLUDE := -Iinclude/
+LIBINCLUDE := -Iinclude/ -Ilib/json/include/
 DRIVERINCLUDE := -Itest/
 
 LD_FLAGS := -fPIC -shared
@@ -25,12 +25,14 @@ TESTSRC := $(wildcard test/*.c)
 TESTOBJ := $(patsubst %.c, %.o, $(TESTSRC))
 TESTLIB := libtestfunc.so
 
+JSONLIB := libjson.so
+
 .PHONE: all clean
 
 all: $(DRIVER)
 
-$(DRIVER): $(DRIVEROBJ) $(FRAMELIB) $(TESTLIB)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ldl
+$(DRIVER): $(DRIVEROBJ) $(FRAMELIB) $(TESTLIB) $(JSONLIB)
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ljson -ldl
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
@@ -47,6 +49,10 @@ $(TESTLIB): $(TESTOBJ)
 $(TESTOBJ): %.o:%.c
 	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
 
+$(JSONLIB):
+	$(MAKE) -C lib/json
+	@ln -s lib/json/libcjson.so libjson.so
+
 clean: 
 	rm -rf $(DRIVER)
 	rm -rf $(DRIVEROBJ)
@@ -54,3 +60,5 @@ clean:
 	rm -rf $(FRAMEOBJ)
 	rm -rf $(TESTLIB)
 	rm -rf $(TESTOBJ)
+	rm -rf $(JSONLIB)
+	$(MAKE) -C lib/json clean
