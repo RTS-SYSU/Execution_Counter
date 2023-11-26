@@ -1,0 +1,34 @@
+[
+    {
+        "core": 0,
+        "tasks": [
+            {
+                "function": "my_loop"
+            }
+        ]
+    },
+    {
+        "core": 1,
+        "tasks": [
+            {
+                "function": "my_loop2"
+            }
+        ]
+    },
+    {
+        "core": 2,
+        "tasks": [
+            {
+                "function": "my_loop3"
+            }
+        ]
+    },
+    {
+        "core": 3,
+        "tasks": [
+            {
+                "function": "my_loop4"
+            }
+        ]
+    }
+]
