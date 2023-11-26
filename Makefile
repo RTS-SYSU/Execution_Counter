@@ -1,7 +1,7 @@
 CC := gcc
 TEST_CC ?= clang
 
-CC_FLAGS := -O0 -g -Wall -Werror -march=native # -fsanitize=address 
+CC_FLAGS := -O3 -Wall -Werror -march=native # -fsanitize=address 
 
 # Note: by default, we do not enable address sanitizer
 MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
