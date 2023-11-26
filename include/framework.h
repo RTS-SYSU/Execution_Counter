@@ -15,24 +15,25 @@ typedef uint64_t ticks;
 
 typedef void (*fp)(void *);
 
-typedef enum {
-  TYPE_INT_64,
-  TYPE_FLOAT_32,
-  TYPE_FLOAT_64,
-  TYPE_POINTER,
-} arg_type;
+// TODO: May be we can enable this feature in the future
+// typedef enum {
+//   TYPE_INT_64,
+//   TYPE_FLOAT_32,
+//   TYPE_FLOAT_64,
+//   TYPE_POINTER,
+// } arg_type;
 
-typedef union {
-  int64_t int64;
-  float float32;
-  double float64;
-  void *pointer;
-} arg_val;
+// typedef union {
+//   int64_t int64;
+//   float float32;
+//   double float64;
+//   void *pointer;
+// } arg_val;
 
-typedef struct {
-  uint64_t arg_size;
-  arg_val *arg_val;
-} func_arg;
+// typedef struct {
+//   uint64_t arg_size;
+//   arg_val *arg_val;
+// } func_arg;
 
 typedef struct {
   // Note that, func name will not be freed, please manage it by yourself
