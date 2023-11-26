@@ -29,8 +29,8 @@ TESTLIB := libtestfunc.so
 
 all: $(DRIVER)
 
-$(DRIVER): $(FRAMELIB) $(TESTLIB) $(DRIVEROBJ)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $^ -L. -ltestfunc -ltest -ldl
+$(DRIVER): $(DRIVEROBJ) $(FRAMELIB) $(TESTLIB)
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ldl
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
