@@ -17,7 +17,7 @@ def data_cleaning(data, std_range = 5):
 def plot_result(data, wcet, title: str, output: str):
     data = data_cleaning(data)
     x = [i for i in range(len(data))]
-    data = [data[i] / wcet * 100 for i in range(len(data))]
+    data = [(data[i] / wcet) * 100 for i in range(len(data))]
     
     plt.title(title)
     plt.xlabel('Execution')
