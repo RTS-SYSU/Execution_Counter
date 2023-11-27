@@ -1,0 +1,18 @@
+[
+    {
+        "function": "my_loop",
+        "WCET": 10000
+    },
+    {
+        "function": "my_loop2",
+        "WCET": 100000
+    },
+    {
+        "function": "my_loop3",
+        "WCET": 100000
+    },
+    {
+        "function": "my_loop4",
+        "WCET": 100000
+    }
+]

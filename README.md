@@ -4,34 +4,21 @@ A simple execution time counter use to eval [llvmta](https://github.com/RTS-SYSU
 
 # Usage
 
-Please change the `driver.c` to enable test.
+Please change the `CoreInfo.json` to change the test set.
 
 ## Basic Usage
 
-In the `driver.c`, We provide a simple example, which is a 4-core parallel execution of different tasks
+The `CoreInfo.json` is similar to what we used in [llvmta](https://github.com/RTS-SYSU/llvmta), you can check that project for further info, besides, we provide a simple example in [CoreInfo.json](./CoreInfo.json).
 
-```text
-function: 0x55c0be2d7199, function name: my_loop, ticks: 808
-function: 0x55c0be2d7237, function name: my_loop3, ticks: 5632
-function: 0x55c0be2d71dc, function name: my_loop2, ticks: 4720
-function: 0x55c0be2d7290, function name: my_loop4, ticks: 592628
-```
+## Advanced Usage
 
-## Modification
+If you want to test your own test function, please follow below:
 
-We make it more easy to use, for now, all you need to do is:
+1. Write your own test function in `test` directory, and make sure it returns a `void` and receives a `void*` as its only parameter.
 
-1. Add your function in `test/funcimpl.c` and `test/funcdef.h`
+2. Change the `CoreInfo.json` to use your own test function.
 
-2. Modified `driver.c`, change the macro `CORE` to your system core, and then call `add_function` to do the task set.
-
-    More specifically, first call `create_test_args(CORE)` to get an array of different core task info, then call `add_function(&arg[core_number], func_name, func_ptr, func_args)` to add the function to specific core
-
-3. call `start_test(CORE, arg)` to start
-
-4. call `free_test_args(arg)` to free the args we create in step 2.
-
-We provide a simple example in `driver.c`, change it by your need.
+3. Compile and run as below.
 
 ## Build
 
@@ -40,13 +27,29 @@ Just simply run `make` in the root directory of this project.
 If you need to change the test function flags, use
 
 ```bash
-make TEST_FLAGS=<your flags>
+make TEST_FLAGS=<your flags> TEST_CC=<your compiler>
 ```
+
+Note that by default, we use gcc to compile the framework and clang to compile the test function.
 
 ## Run
 
 Please run it by 
 
 ```bash
-LD_LIBRARY_PATH=. ./driver
+LD_LIBRARY_PATH=. ./driver <test iteration> <Core info.json> <output.json>
 ```
+
+## Evaluation
+
+We also provide a simple evaluation script in `eval.py`, you can use it to evaluate the output json file.
+
+Please be noted that you have to provide a json file looks like `wcet.json`, we provide an [example](./wcet.json), which is the result of [llvmta](https://github.com/RTS-SYSU/llvmta), and all arguments can be found by `python eval.py -h`.
+
+An example is shown below:
+
+```bash
+./eval.py --json output.json --wcet wcet.json --calc mean median max min std --plot
+```
+
+This will show the results on the screen and plot the result in certain format.
