@@ -15,13 +15,13 @@ def data_cleaning(data, std_range = 5):
 
 
 def plot_result(data, wcet, title: str, output: str):
-    x = [i for i in range(len(data))]
-    data = [data[i] / wcet for i in range(len(data))]
     data = data_cleaning(data)
+    x = [i for i in range(len(data))]
+    data = [data[i] / wcet * 100 for i in range(len(data))]
+    
     plt.title(title)
-    plt.xlabel('Iteration')
+    plt.xlabel('Execution')
     plt.ylabel('Ticks/WCET (%)')
-    # plt.legend()
     plt.scatter(x, data, s=10, c='b', marker="s", label='ticks')
     
     plt.savefig(output)
