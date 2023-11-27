@@ -8,10 +8,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_result(data, title: str, output: str):
+def plot_result(data, wcet, title: str, output: str):
     x = [i for i in range(len(data))]
+    data = [data[i] / wcet for i in range(len(data))]
     plt.title(title)
-    
+    plt.xlabel('Iteration')
+    plt.ylabel('Ticks/WCET (%)')
+    # plt.legend()
     plt.scatter(x, data, s=10, c='b', marker="s", label='ticks')
     
     plt.savefig(output)
@@ -39,7 +42,7 @@ def process_json(data) -> dict:
     return ret
 
 
-def calc(data, method):
+def calc(data, method, wcet, plot):
     for core in data:
         print(f'Core: {core}')
         res_core = list()
@@ -65,9 +68,9 @@ def calc(data, method):
         
         tasks = len(res_core[0])
         res_core = np.array(res_core)
-        if args.plot:
+        if plot:
             for i in range(tasks):
-                plot_result([res_core[x][i] for x in range(len(res_core))], f'Core: {core} Task: {names[i]}', f'core_{core}_task_{names[i]}.png')
+                plot_result([res_core[x][i] for x in range(len(res_core))], wcet[names[i]],f'Core: {core} Task: {names[i]}', f'core_{core}_task_{names[i]}.png')
         res_sum = np.sum(res_core, axis=0)
         for i in range(len(res_sum)):
             print(f'sum: {names[i]}: {res_sum[i]}')
@@ -109,8 +112,13 @@ def calc(data, method):
 def main(args) -> int:
     data = read_json(args.json)
     res = process_json(data)
-    # print(res)
-    calc(res, args.calc)
+    _wcets = read_json(args.wcet)
+    wcet = dict()
+    
+    for fun in _wcets:
+        wcet[fun['function']] = fun['WCET']
+    
+    calc(res, args.calc, wcet, args.plot)
     
     return 0
 
@@ -119,6 +127,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('Evaluatioin')
     
     parser.add_argument("--json", type=str, default='output.json', help='Json file to be evaluated')
+    parser.add_argument("--wcet", type=str, default='wcet.json', help='Json file of wcet')
     parser.add_argument("--calc", choices=["mean", "median", "max", "min", "std"], default=["mean", "median", "max", "min", "std"], help="Calculation method", nargs='+')
     parser.add_argument("--plot", action='store_true', help="Plot the result")
     
