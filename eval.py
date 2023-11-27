@@ -7,10 +7,17 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+def data_cleaning(data, std_range = 5):
+    mean = np.mean(data)
+    std = np.std(data)
+    data = [x for x in data if x < mean + std_range * std and x > mean - std_range * std]
+    return data
+
 
 def plot_result(data, wcet, title: str, output: str):
     x = [i for i in range(len(data))]
     data = [data[i] / wcet for i in range(len(data))]
+    data = data_cleaning(data)
     plt.title(title)
     plt.xlabel('Iteration')
     plt.ylabel('Ticks/WCET (%)')
