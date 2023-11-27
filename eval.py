@@ -55,27 +55,33 @@ def calc(data, method):
         if ('mean' in method):
             print('mean:')
             res = np.mean(res_core, axis=0)
-            for i in range(res.shape[0]):
+            for i in range(len(res)):
                 print(f'{names[i]}: {res[i]}')
         if ('median' in method):
             print('median:')
             res = np.median(res_core, axis=0)
-            for i in range(res.shape[0]):
+            for i in range(len(res)):
                 print(f'{names[i]}: {res[i]}')
         if ('max' in method):
             print('max:')
             res = np.max(res_core, axis=0)
-            for i in range(res.shape[0]):
+            for i in range(len(res)):
                 print(f'{names[i]}: {res[i]}')
         if ('min' in method):
             print('min:')
             res = np.min(res_core, axis=0)
-            for i in range(res.shape[0]):
+            for i in range(len(res)):
                 print(f'{names[i]}: {res[i]}')
         if ('std' in method):
             print('std:')
             res = np.std(res_core, axis=0)
-            for i in range(res.shape[0]):
+            for i in range(len(res)):
+                print(f'{names[i]}: {res[i]}')
+        if ('mean' in method and 'std' in method):
+            # mead+=5std
+            print('mean + 5std:')
+            res = np.mean(res_core, axis=0) + 5 * np.std(res_core, axis=0)
+            for i in range(len(res)):
                 print(f'{names[i]}: {res[i]}')
         print('-------------------------------------------')
     return 0
