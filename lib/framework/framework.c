@@ -256,7 +256,7 @@ test_args *parse_from_json(const char *json_file, const char *dllname,
           TO_JSON_STRING(json_get(task, "function")->val.val_as_str);
       f = dlsym(dll, funcname);
       if (f == NULL) {
-        fprintf(stderr, "Unable to find func: %s in %s\n", funcname, libname);
+        fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
         exit(EXIT_FAILURE);
       }
       // TODO: maybe we can add an arguments later?
