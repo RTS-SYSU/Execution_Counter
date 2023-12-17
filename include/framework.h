@@ -66,10 +66,8 @@ void add_function(test_args *args, char *funcname, fp funcptr, void *funargc);
 
 test_args *create_test_args(uint64_t core);
 
-test_args *parse_from_json(const char *json_file,
-                           const char *libname,
-                           uint64_t *core,
-                           json_node *result);
+test_args *parse_from_json(const char *json_file, const char *dllname,
+                           void *dll, uint64_t *core, json_node *result);
 
 void free_test_args(uint64_t core, test_args *args);
 

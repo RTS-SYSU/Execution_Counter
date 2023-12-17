@@ -189,21 +189,19 @@ void get_result(uint64_t core, test_args *args, uint64_t id) {
   }
 }
 
-test_args *parse_from_json(const char *json_file,
-                           const char *libname,
-                           uint64_t *cores,
-                           json_node *results) {
+test_args *parse_from_json(const char *json_file, const char *dllname,
+                           void *dll, uint64_t *cores, json_node *results) {
   json_node *root = parse_json_file(json_file);
   if (root == NULL) {
     fprintf(stderr, "Failed to parse json file: %s\n", json_file);
     exit(EXIT_FAILURE);
   }
 
-  void *dll = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
-  if (dll == NULL) {
-    fprintf(stderr, "Failed to open %s\n", libname);
-    exit(EXIT_FAILURE);
-  }
+  // void *dll = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
+  // if (dll == NULL) {
+  //   fprintf(stderr, "Failed to open %s\n", libname);
+  //   exit(EXIT_FAILURE);
+  // }
 
   if (results == NULL) {
     fprintf(stderr, "result should be an initialized json_array\n");

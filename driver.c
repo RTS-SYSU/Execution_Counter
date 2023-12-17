@@ -24,9 +24,16 @@ int main(int argc, const char **argv) {
   uint64_t cores = 0;
   uint64_t repeats = atoi(argv[1]);
 
+  void *dll = dlopen("libtestfunc.so", RTLD_NOW | RTLD_GLOBAL);
+  if (dll == NULL) {
+    fprintf(stderr, "Unable to open dll %s\n", "libtestfunc.so");
+    exit(EXIT_FAILURE);
+  }
+
   json_node *results = create_json_node();
   results->type = JSON_ARRAY;
-  test_args *args = parse_from_json(argv[2], "libtestfunc.so", &cores, results);
+  test_args *args =
+      parse_from_json(argv[2], "libtestfunc.so", dll, &cores, results);
 
   for (int64_t i = 0; i < repeats; ++i) {
     start_test(cores, args);
@@ -47,6 +54,8 @@ int main(int argc, const char **argv) {
   if (fp) {
     fclose(fp);
   }
+
+  dlclose(dll);
 
   return 0;
 }
