@@ -5,8 +5,8 @@
 #define _GNU_SOURCE
 #endif
 
-#include <stdint.h>
 #include "jsonobj.h"
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
