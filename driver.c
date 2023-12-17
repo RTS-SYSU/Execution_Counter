@@ -1,13 +1,11 @@
-#include <dlfcn.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "framework.h"
 #include "funcdef.h"
 #include "jsonobj.h"
 #include "jsonparser.h"
-
-#define CORE 4
+#include <dlfcn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
