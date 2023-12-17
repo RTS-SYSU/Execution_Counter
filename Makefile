@@ -44,10 +44,10 @@ $(FRAMEOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
-	$(TEST_CC) $(TEST_FLAGS) $(TEST_LD_FLAGS) $(LD_FLAGS) -o $@ $^
+	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
+	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -c $< -o $@
 
 $(JSONLIB):
 	$(MAKE) -C lib/json lib
