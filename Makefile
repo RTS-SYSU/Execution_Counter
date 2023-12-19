@@ -1,5 +1,5 @@
 CC := gcc
-TEST_CC ?= clang
+TEST_CC ?= gcc
 
 CC_FLAGS := -O3 -Wall -Werror -march=native # -fsanitize=address 
 

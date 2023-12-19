@@ -38,6 +38,7 @@ int main(int argc, const char **argv) {
   for (int64_t i = 0; i < repeats; ++i) {
     start_test(cores, args);
     get_result(cores, args, i);
+    dll = reload_dll("libtestfunc.so", args);
   }
 
   free_test_args(cores, args);

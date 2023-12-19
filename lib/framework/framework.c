@@ -269,3 +269,24 @@ test_args *parse_from_json(const char *json_file, const char *dllname,
   free_json_node(root);
   return args;
 }
+
+void *reload_dll(const char *dllname, test_args *args) {
+  void *dll = dlopen(dllname, RTLD_NOW | RTLD_GLOBAL);
+
+  if (dll == NULL) {
+    fprintf(stderr, "Unable to open dll %s\n", dllname);
+    exit(EXIT_FAILURE);
+  }
+
+  for (uint64_t i = 0; i < args->current; ++i) {
+    char *funcname = args->funcs[i].funcname;
+    fp f = dlsym(dll, funcname);
+    if (f == NULL) {
+      fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
+      exit(EXIT_FAILURE);
+    }
+    args->funcs[i].funcptr = f;
+  }
+
+  return dll;
+}
