@@ -4,7 +4,7 @@ TEST_CC ?= gcc
 MODE ?= Release
 
 ifeq ($(MODE), Release)
-CC_FLAGS := -O3 -Wall -Werror -march=native -fno-gnu-unique
+CC_FLAGS := -O3 -Wall -Werror -march=native -fno-gnu-unique -fPIC
 else ifeq ($(MODE), Debug)
 CC_FLAGS := -O0 -g -Wall -Werror -march=native -fno-gnu-unique -fsanitize=address -fno-omit-frame-pointer
 endif
@@ -15,7 +15,7 @@ MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
 LIBINCLUDE := -Iinclude/ -Ilib/json/include/
 DRIVERINCLUDE := -Itest/
 
-LD_FLAGS := -fPIC -shared
+LD_FLAGS := -shared
 
 TEST_FLAGS := -O0
 
@@ -47,13 +47,13 @@ $(FRAMELIB): $(FRAMEOBJ)
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -ldl -L. -ljson -o $@ $^
 
 $(FRAMEOBJ): %.o:%.c
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -c $< -o $@
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
 	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -c $< -o $@
+	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
 
 $(JSONLIB):
 	$(MAKE) -C lib/json lib CC_FLAGS="$(CC_FLAGS)"
