@@ -16,9 +16,13 @@
 const char *helpMsg = "Usage: %s <repeats> <input_json> <output_json>\n";
 
 int main(int argc, const char **argv) {
-  if (argc != 4) {
+  if (argc < 2 || argc != 4) {
     fprintf(stderr, helpMsg, argv[0]);
     exit(EXIT_FAILURE);
+  }
+  if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+    fprintf(stderr, helpMsg, argv[0]);
+    return 0;
   }
 
   uint64_t cores = 0;
