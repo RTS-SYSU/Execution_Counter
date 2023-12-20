@@ -38,7 +38,7 @@ JSONLIB := libjson.so
 all: $(DRIVER)
 
 $(DRIVER): $(DRIVEROBJ) $(JSONLIB) $(FRAMELIB) $(TESTLIB)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -L. -ltestfunc -ltest -ljson
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -ldl -L. -ltestfunc -ltest -ljson
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
