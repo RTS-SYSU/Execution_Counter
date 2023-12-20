@@ -43,7 +43,7 @@ int main(int argc, const char **argv) {
   for (int64_t i = 0; i < repeats; ++i) {
     start_test(cores, args);
     get_result(cores, args, i);
-    dll = reload_dll(LIB_NAME, args);
+    dll = reload_dll(LIB_NAME, cores, args, dll);
   }
 
   free_test_args(cores, args);
@@ -62,6 +62,5 @@ int main(int argc, const char **argv) {
   }
 
   dlclose(dll);
-
   return 0;
 }

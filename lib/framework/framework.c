@@ -270,23 +270,46 @@ test_args *parse_from_json(const char *json_file, const char *dllname,
   return args;
 }
 
-void *reload_dll(const char *dllname, test_args *args) {
-  void *dll = dlopen(dllname, RTLD_NOW | RTLD_GLOBAL);
+void *reload_dll(const char *dllname, uint64_t core, test_args *args,
+                 void *dll) {
+  for (uint64_t i = 0; i < core; ++i) {
+    test_args *cargs = args + i;
+    for (uint64_t j = 0; j < args[i].current; ++i) {
+      cargs->funcs[j].funcptr = NULL;
+    }
+  }
+
+  dlclose(dll);
+
+  void *dll_new = dlopen(dllname, RTLD_NOW | RTLD_GLOBAL);
 
   if (dll == NULL) {
     fprintf(stderr, "Unable to open dll %s\n", dllname);
     exit(EXIT_FAILURE);
   }
 
-  for (uint64_t i = 0; i < args->current; ++i) {
-    char *funcname = args->funcs[i].funcname;
-    fp f = dlsym(dll, funcname);
-    if (f == NULL) {
-      fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
-      exit(EXIT_FAILURE);
+  // for (uint64_t i = 0; i < args->current; ++i) {
+  //   char *funcname = args->funcs[i].funcname;
+  //   fp f = dlsym(dll, funcname);
+  //   if (f == NULL) {
+  //     fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
+  //     exit(EXIT_FAILURE);
+  //   }
+  //   args->funcs[i].funcptr = f;
+  // }
+
+  for (uint64_t i = 0; i < core; ++i) {
+    test_args *cargs = args + i;
+    for (uint64_t j = 0; j < args[i].current; ++j) {
+      char *funcname = cargs->funcs[j].funcname;
+      fp f = dlsym(dll_new, funcname);
+      if (f == NULL) {
+        fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
+        exit(EXIT_FAILURE);
+      }
+      cargs->funcs[j].funcptr = f;
     }
-    args->funcs[i].funcptr = f;
   }
 
-  return dll;
+  return dll_new;
 }

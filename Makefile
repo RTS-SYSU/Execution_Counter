@@ -4,9 +4,9 @@ TEST_CC ?= gcc
 MODE ?= Release
 
 ifeq ($(MODE), Release)
-CC_FLAGS := -O3 -Wall -Werror -march=native
+CC_FLAGS := -O3 -Wall -Werror -march=native -fno-gnu-unique
 else ifeq ($(MODE), Debug)
-CC_FLAGS := -O0 -g -Wall -Werror -march=native -fsanitize=address -fno-omit-frame-pointer
+CC_FLAGS := -O0 -g -Wall -Werror -march=native -fno-gnu-unique -fsanitize=address -fno-omit-frame-pointer
 endif
 
 # Note: by default, we do not enable address sanitizer

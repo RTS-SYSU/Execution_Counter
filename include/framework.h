@@ -73,7 +73,8 @@ void free_test_args(uint64_t core, test_args *args);
 
 void get_result(uint64_t core, test_args *args, uint64_t count);
 
-void *reload_dll(const char *dllname, test_args *args);
+void *reload_dll(const char *dllname, uint64_t core, test_args *args,
+                 void *dll);
 
 #ifdef __cplusplus
 }
