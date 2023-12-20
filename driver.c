@@ -30,7 +30,7 @@ int main(int argc, const char **argv) {
   uint64_t cores = 0;
   uint64_t repeats = atoi(argv[1]);
 
-  void *dll = dlopen(LIB_NAME, RTLD_NOW | RTLD_GLOBAL);
+  void *dll = dlopen(LIB_NAME, RTLD_NOW | RTLD_LOCAL);
   if (dll == NULL) {
     fprintf(stderr, "Unable to open dll %s\n", LIB_NAME);
     exit(EXIT_FAILURE);

@@ -281,7 +281,7 @@ void *reload_dll(const char *dllname, uint64_t core, test_args *args,
 
   dlclose(dll);
 
-  void *dll_new = dlopen(dllname, RTLD_NOW | RTLD_GLOBAL);
+  void *dll_new = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
 
   if (dll == NULL) {
     fprintf(stderr, "Unable to open dll %s\n", dllname);
