@@ -49,18 +49,13 @@ void *thread_handler(void *thread_args) {
     fp func = (fp)current->funcptr;
     // function arguments
     void *arg = (void *)current->args;
-    // fprintf(stderr, "function: %p, function name: %s\n", func, functionName);
 
     ticks start, end;
     start = get_CPU_Cycle();
     func(arg);
     end = get_CPU_Cycle();
     current->results = (end - start);
-    // may be we should not print here, due to we have to switch to the kernel
-    // from user space
-    // fprintf(stderr, "Core: %lu, function: %p, function name: %s, ticks :
-    // %lu\n",
-    //         args->core, func, functionName, end - start);
+
     current++;
   }
   return (void *)0;

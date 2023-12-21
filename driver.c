@@ -80,18 +80,7 @@ int main(int argc, const char **argv) {
       start_test(core, args);
       get_result(core, args, memory);
 
-      // for (uint64_t i = 0; i < core; ++i) {
-      //   fprintf(stderr, "Core %lu\n", i);
-      //   for (uint64_t j = 0; j < args[i].current; ++j) {
-      //     fprintf(stderr, "Calling %s\n", args[i].funcs[j].funcname);
-      //     fprintf(stderr, "Args: %p\n", args[i].funcs[j].args);
-      //     fprintf(stderr, "Funcptr: %p\n", args[i].funcs[j].funcptr);
-      //     fprintf(stderr, "Results: %lu\n", args[i].funcs[j].results);
-      //   }
-      // }
-
       free_test_args(core, args);
-
       dlclose(dll);
       exit(EXIT_SUCCESS);
     } else {
@@ -102,18 +91,11 @@ int main(int argc, const char **argv) {
         exit(EXIT_FAILURE);
       }
 
-      // fprintf(stderr, "Total tasks: %lu\n", total_tasks);
-
-      // for (int i = 0; i < total_tasks; ++i) {
-      //   fprintf(stderr, "Task %d: %lu\n", i, memory[i]);
-      // }
-
       store_results(coreinfo, result, memory);
     }
   }
 
   munmap(memory, SHARED_MEMORY_SIZE);
-
   FILE *output = fopen(argv[3], "w");
   print_json(result, 0, output);
   fclose(output);
