@@ -22,7 +22,8 @@ else
 LD_FLAGS := -shared
 endif
 
-TEST_FLAGS := -O0 -fPIC
+DEFAULT_FLAGS := -fPIC
+TEST_FLAGS := -O0
 
 DRIVERSRC := $(wildcard *.c)
 DRIVEROBJ := $(patsubst %.c, %.o, $(DRIVERSRC))
@@ -55,13 +56,13 @@ $(FRAMEOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@
 
 $(TESTLIB): $(TESTOBJ)
-	$(TEST_CC) $(TEST_FLAGS) $(LD_FLAGS) -o $@ $^
+	$(TEST_CC) $(DEFAULT_FLAGS) $(TEST_FLAGS) $(LD_FLAGS) -o $@ $^
 
 $(TESTOBJ): %.o:%.c
-	$(TEST_CC) $(TEST_FLAGS) -c $< -o $@
+	$(TEST_CC) $(DEFAULT_FLAGS) $(TEST_FLAGS) -c $< -o $@
 
 $(JSONLIB):
-	$(MAKE) -C lib/json lib CC_FLAGS="$(CC_FLAGS)"
+	$(MAKE) -C lib/json lib
 	@ln -s lib/json/libjson.so libjson.so
 
 clean: 
