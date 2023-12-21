@@ -31,9 +31,9 @@ int main(int argc, const char **argv) {
 
   // Make current process be a real-time process
   struct sched_param param;
-  param.sched_priority = sched_get_priority_max(SCHED_RR);
+  param.sched_priority = sched_get_priority_max(SCHED_FIFO);
   pid_t pid = getpid();
-  if (sched_setscheduler(pid, SCHED_RR, &param) != 0) {
+  if (sched_setscheduler(pid, SCHED_FIFO, &param) != 0) {
     fprintf(stderr, "Failed to set scheduler\n");
     fprintf(stderr, "Please run this program as root\n");
     exit(EXIT_FAILURE);
