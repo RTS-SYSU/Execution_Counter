@@ -6,7 +6,7 @@ MODE ?= Release
 ifeq ($(MODE), Release)
 CC_FLAGS := -O3 -Wall -Werror -march=native -fPIC
 else ifeq ($(MODE), Debug)
-CC_FLAGS := -O0 -g -Wall -Werror -march=native # -fsanitize=address -fno-omit-frame-pointer
+CC_FLAGS := -O0 -g -fPIC -Wall -Werror -march=native # -fsanitize=address -fno-omit-frame-pointer
 endif
 
 # Note: by default, we do not enable address sanitizer
@@ -15,7 +15,12 @@ MEMORY_FLAGS := -fsanitize=address -fno-omit-frame-pointer
 LIBINCLUDE := -Iinclude/ -Ilib/json/include/
 DRIVERINCLUDE := -Itest/
 
+# Only gcc support -fno-gnu-unique
+ifeq ($(CC), gcc)
 LD_FLAGS := -shared -fno-gnu-unique
+else
+LD_FLAGS := -shared
+endif
 
 TEST_FLAGS := -O2 -fPIC
 
