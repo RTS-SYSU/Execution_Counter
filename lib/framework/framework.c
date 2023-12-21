@@ -5,10 +5,13 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sched.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "framework.h"
 #include "jsonobj.h"
@@ -67,6 +70,7 @@ void start_test(uint64_t core, test_args *args) {
   pthread_barrier_init(&bar, NULL, core);
   pthread_t threads[core];
   cpu_set_t sets[core];
+  // struct sched_param param[core];
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
@@ -85,6 +89,16 @@ void start_test(uint64_t core, test_args *args) {
               "Error calling pthread_setaffinity_np.(Thread num: %lu)\n", i);
       exit(EXIT_FAILURE);
     }
+
+    // Make the thread be a real-time thread
+    // param[i].sched_priority = sched_get_priority_max(SCHED_FIFO);
+    // rc = pthread_setschedparam(threads[i], SCHED_FIFO, &param[i]);
+    // if (rc != 0) {
+    //   fprintf(stderr, "Error calling pthread_setschedparam.(Thread num:
+    //   %lu)\n",
+    //           i);
+    //   exit(EXIT_FAILURE);
+    // }
   }
 
   for (uint64_t i = 0; i < core; ++i) {
@@ -136,81 +150,21 @@ void free_test_args(uint64_t core, test_args *args) {
   free(args);
 }
 
-void get_result(uint64_t core, test_args *args, uint64_t id) {
+void get_result(uint64_t core, test_args *args, uint64_t *memory) {
+  size_t idx = 0;
   for (uint64_t i = 0; i < core; ++i) {
-    // func_args *current = args[i].funcs;
-    json_node *result_handler = args[i].result_handler;
-    if (result_handler->child == NULL) {
-      result_handler->child = create_json_node();
-      result_handler->child->type = JSON_OBJECT;
-      result_handler = result_handler->child;
-      args[i].result_handler = result_handler;
-    } else {
-      result_handler->next = create_json_node();
-      result_handler->next->type = JSON_OBJECT;
-      result_handler = result_handler->next;
-      args[i].result_handler = result_handler;
-    }
     for (uint64_t j = 0; j < args[i].current; ++j) {
-      // fprintf(stderr,
-      //         "Core: %lu, function: %p, function name: %s, ticks: %lu\n", i,
-      //         (fp)current[j].funcptr, (char *)current[j].funcname,
-      //         current[j].results);
-      if (j == 0) {
-        // id field
-        result_handler->child = create_json_node();
-        result_handler->child->type = JSON_INT;
-        result_handler->child->key = TO_JSON_STRING("id");
-        result_handler->child->val.val_as_int = id;
-        // tasks field
-        result_handler->child->next = create_json_node();
-        result_handler->child->next->type = JSON_ARRAY;
-        result_handler->child->next->key = TO_JSON_STRING("tasks");
-        result_handler->child->next->child = create_json_node();
-        result_handler->child->next->child->type = JSON_OBJECT;
-        result_handler = result_handler->child->next->child;
-      }
-      // function field and ticks field
-      result_handler->child = create_json_node();
-      result_handler->child->type = JSON_STRING;
-      result_handler->child->key = TO_JSON_STRING("function");
-      result_handler->child->val.val_as_str =
-          TO_JSON_STRING((char *)args[i].funcs[j].funcname);
-      result_handler->child->next = create_json_node();
-      result_handler->child->next->type = JSON_INT;
-      result_handler->child->next->key = TO_JSON_STRING("ticks");
-      result_handler->child->next->val.val_as_int = args[i].funcs[j].results;
-      if (j != args[i].current - 1) {
-        result_handler->next = create_json_node();
-        result_handler->next->type = JSON_OBJECT;
-        result_handler = result_handler->next;
-      }
+      memory[idx++] = args[i].funcs[j].results;
     }
   }
 }
 
-test_args *parse_from_json(const char *json_file, const char *dllname,
-                           void *dll, uint64_t *cores, json_node *results) {
+test_args *parse_from_json(const char *json_file, uint64_t *cores) {
   json_node *root = parse_json_file(json_file);
   if (root == NULL) {
     fprintf(stderr, "Failed to parse json file: %s\n", json_file);
     exit(EXIT_FAILURE);
   }
-
-  // void *dll = dlopen(libname, RTLD_NOW | RTLD_GLOBAL);
-  // if (dll == NULL) {
-  //   fprintf(stderr, "Failed to open %s\n", libname);
-  //   exit(EXIT_FAILURE);
-  // }
-
-  if (results == NULL) {
-    fprintf(stderr, "result should be an initialized json_array\n");
-    exit(EXIT_FAILURE);
-  }
-
-  results->type = JSON_ARRAY;
-
-  fp f = NULL;
 
   json_node *core = root->child;
 
@@ -225,42 +179,15 @@ test_args *parse_from_json(const char *json_file, const char *dllname,
 
   core = root->child;
 
-  json_node *object = NULL;
   for (uint64_t i = 0; i < *cores; ++i) {
-    if (i == 0) {
-      // get child
-      results->child = create_json_node();
-      results->child->type = JSON_OBJECT;
-      object = results->child;
-      // results->child->child = create_json_node();
-      // results->child->child->type = JSON_INT;
-    } else {
-      object->next = create_json_node();
-      object->next->type = JSON_OBJECT;
-      object = object->next;
-    }
-    object->child = create_json_node();
-    object->child->type = JSON_INT;
-    object->child->key = TO_JSON_STRING("core");
-    object->child->val.val_as_int = i;
-    object->child->next = create_json_node();
-    object->child->next->type = JSON_ARRAY;
-    object->child->next->key = TO_JSON_STRING("results");
-    args[i].result_handler = object->child->next;
-
     uint64_t cur = json_get(core, "core")->val.val_as_int;
     json_node *tasks = json_get(core, "tasks");
     json_node *task = json_get(tasks, "tasks")->child;
     while (task != NULL) {
       char *funcname =
           TO_JSON_STRING(json_get(task, "function")->val.val_as_str);
-      f = dlsym(dll, funcname);
-      if (f == NULL) {
-        fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
-        exit(EXIT_FAILURE);
-      }
       // TODO: maybe we can add an arguments later?
-      add_function(args + cur, funcname, f, NULL);
+      add_function(args + cur, funcname, NULL, NULL);
       task = task->next;
     }
     core = core->next;
@@ -270,39 +197,12 @@ test_args *parse_from_json(const char *json_file, const char *dllname,
   return args;
 }
 
-void *reload_dll(const char *dllname, uint64_t core, test_args *args,
-                 void *dll) {
-  for (uint64_t i = 0; i < core; ++i) {
-    test_args *cargs = args + i;
-    for (uint64_t j = 0; j < args[i].current; ++i) {
-      cargs->funcs[j].funcptr = NULL;
-    }
-  }
-
-  dlclose(dll);
-
-  void *dll_new = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
-
-  if (dll == NULL) {
-    fprintf(stderr, "Unable to open dll %s\n", dllname);
-    exit(EXIT_FAILURE);
-  }
-
-  // for (uint64_t i = 0; i < args->current; ++i) {
-  //   char *funcname = args->funcs[i].funcname;
-  //   fp f = dlsym(dll, funcname);
-  //   if (f == NULL) {
-  //     fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
-  //     exit(EXIT_FAILURE);
-  //   }
-  //   args->funcs[i].funcptr = f;
-  // }
-
+void load_dll(uint64_t core, test_args *args, const char *dllname, void *dll) {
   for (uint64_t i = 0; i < core; ++i) {
     test_args *cargs = args + i;
     for (uint64_t j = 0; j < args[i].current; ++j) {
       char *funcname = cargs->funcs[j].funcname;
-      fp f = dlsym(dll_new, funcname);
+      fp f = dlsym(dll, funcname);
       if (f == NULL) {
         fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
         exit(EXIT_FAILURE);
@@ -310,6 +210,125 @@ void *reload_dll(const char *dllname, uint64_t core, test_args *args,
       cargs->funcs[j].funcptr = f;
     }
   }
+}
 
-  return dll_new;
+json_node *create_result_json_array(const json_node *coreinfo,
+                                    uint64_t *total_tasks) {
+  if (coreinfo == NULL) {
+    fprintf(stderr, "coreinfo can not be NULL\n");
+    exit(EXIT_FAILURE);
+  }
+  json_node *result = create_json_node();
+  result->type = JSON_ARRAY;
+  json_node *object = NULL;
+
+  json_node *core = coreinfo->child;
+
+  while (core) {
+    if (core == coreinfo->child) {
+      // the first node
+      result->child = create_json_node();
+      result->child->type = JSON_OBJECT;
+      object = result->child;
+    } else {
+      object->next = create_json_node();
+      object->next->type = JSON_OBJECT;
+      object = object->next;
+    }
+    object->child = create_json_node();
+    object->child->type = JSON_INT;
+    object->child->key = TO_JSON_STRING("core");
+    object->child->val.val_as_int = core->child->val.val_as_int;
+    object->child->next = create_json_node();
+    object->child->next->type = JSON_ARRAY;
+    object->child->next->key = TO_JSON_STRING("results");
+
+    json_node *tasks = json_get(core, "tasks")->child;
+    while (tasks != NULL) {
+      tasks = tasks->next;
+      ++(*total_tasks);
+    }
+    core = core->next;
+  }
+
+  return result;
+}
+
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
+  if (coreinfo == NULL || result == NULL) {
+    fprintf(stderr, "coreinfo and result can not be NULL\n");
+    exit(EXIT_FAILURE);
+  }
+
+  json_node *core = coreinfo->child;
+  json_node *object = result->child;
+  size_t idx = 0;
+
+  while (core) {
+    json_node *tasks = json_get(core, "tasks")->child;
+    json_node *results = json_get(object, "results")->child;
+
+    if (results == NULL) {
+      json_node *tmp = json_get(object, "results");
+      tmp->child = create_json_node();
+      tmp->child->type = JSON_OBJECT;
+      tmp->child->child = create_json_node();
+      tmp->child->child->type = JSON_INT;
+      tmp->child->child->key = TO_JSON_STRING("id");
+      tmp->child->child->val.val_as_int = 0;
+      tmp->child->child->next = create_json_node();
+      tmp->child->child->next->type = JSON_ARRAY;
+      tmp->child->child->next->key = TO_JSON_STRING("tasks");
+      results = json_get(object, "results")->child;
+    } else {
+      uint64_t id = 1;
+      while (results->next != NULL) {
+        results = results->next;
+        ++id;
+      }
+      results->next = create_json_node();
+      results->next->type = JSON_OBJECT;
+      results->next->child = create_json_node();
+      results->next->child->type = JSON_INT;
+      results->next->child->key = TO_JSON_STRING("id");
+      results->next->child->val.val_as_int = id;
+      results->next->child->next = create_json_node();
+      results->next->child->next->type = JSON_ARRAY;
+      results->next->child->next->key = TO_JSON_STRING("tasks");
+      results = results->next;
+    }
+    json_node *handler = json_get(results, "tasks");
+    while (tasks) {
+      char *funcname = json_get(tasks, "function")->val.val_as_str;
+      if (handler->child == NULL) {
+        handler->child = create_json_node();
+        handler->child->type = JSON_OBJECT;
+        handler->child->child = create_json_node();
+        handler->child->child->type = JSON_STRING;
+        handler->child->child->key = TO_JSON_STRING("function");
+        handler->child->child->val.val_as_str = TO_JSON_STRING(funcname);
+        handler->child->child->next = create_json_node();
+        handler->child->child->next->type = JSON_INT;
+        handler->child->child->next->key = TO_JSON_STRING("ticks");
+        handler->child->child->next->val.val_as_int = memory[idx++];
+        handler = handler->child;
+      } else {
+        handler->next = create_json_node();
+        handler->next->type = JSON_OBJECT;
+        handler->next->child = create_json_node();
+        handler->next->child->type = JSON_STRING;
+        handler->next->child->key = TO_JSON_STRING("function");
+        handler->next->child->val.val_as_str = TO_JSON_STRING(funcname);
+        handler->next->child->next = create_json_node();
+        handler->next->child->next->type = JSON_INT;
+        handler->next->child->next->key = TO_JSON_STRING("ticks");
+        handler->next->child->next->val.val_as_int = memory[idx++];
+        handler = handler->next;
+      }
+      tasks = tasks->next;
+    }
+
+    core = core->next;
+    object = object->next;
+  }
 }
