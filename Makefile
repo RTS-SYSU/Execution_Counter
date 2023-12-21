@@ -4,7 +4,7 @@ TEST_CC ?= gcc
 MODE ?= Release
 
 ifeq ($(MODE), Release)
-CC_FLAGS := -O3 -Wall -Werror -march=native -fPIC
+CC_FLAGS := -O2 -Wall -Werror -march=native -fPIC
 else ifeq ($(MODE), Debug)
 CC_FLAGS := -O0 -g -fPIC -Wall -Werror -march=native # -fsanitize=address -fno-omit-frame-pointer
 endif
@@ -22,7 +22,7 @@ else
 LD_FLAGS := -shared
 endif
 
-TEST_FLAGS := -O2 -fPIC
+TEST_FLAGS := -O0 -fPIC
 
 DRIVERSRC := $(wildcard *.c)
 DRIVEROBJ := $(patsubst %.c, %.o, $(DRIVERSRC))
@@ -43,13 +43,13 @@ JSONLIB := libjson.so
 all: $(DRIVER)
 
 $(DRIVER): $(DRIVEROBJ) $(JSONLIB) $(FRAMELIB) $(TESTLIB)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -ldl -L. -ltestfunc -ltest -ljson
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -ldl -lc -L. -ltestfunc -ltest -ljson
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
 
 $(FRAMELIB): $(FRAMEOBJ)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -ldl -L. -ljson -o $@ $^
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(LD_FLAGS) -lpthread -ldl -lc -L. -ljson -o $@ $^
 
 $(FRAMEOBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(LIBINCLUDE) -c $< -o $@

@@ -3,9 +3,11 @@
 #include "jsonobj.h"
 #include "jsonparser.h"
 #include <dlfcn.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -27,6 +29,16 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
+  // Make current process be a real-time process
+  struct sched_param param;
+  param.sched_priority = sched_get_priority_max(SCHED_RR);
+  pid_t pid = getpid();
+  if (sched_setscheduler(pid, SCHED_RR, &param) != 0) {
+    fprintf(stderr, "Failed to set scheduler\n");
+    fprintf(stderr, "Please run this program as root\n");
+    exit(EXIT_FAILURE);
+  }
+
   uint64_t cores = 0;
   uint64_t repeats = atoi(argv[1]);
 
@@ -43,6 +55,7 @@ int main(int argc, const char **argv) {
   for (int64_t i = 0; i < repeats; ++i) {
     start_test(cores, args);
     get_result(cores, args, i);
+    // fprintf(stderr, "Finish Result %ld\n", i);
     dll = reload_dll(LIB_NAME, cores, args, dll);
   }
 
