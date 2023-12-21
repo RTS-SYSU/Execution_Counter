@@ -4,7 +4,7 @@ TEST_CC ?= gcc
 MODE ?= Release
 
 ifeq ($(MODE), Release)
-CC_FLAGS := -O2 -Wall -Werror -march=native -fPIC
+CC_FLAGS := -O3 -Wall -Werror -march=native -fPIC
 else ifeq ($(MODE), Debug)
 CC_FLAGS := -O0 -g -fPIC -Wall -Werror -march=native # -fsanitize=address -fno-omit-frame-pointer
 endif
