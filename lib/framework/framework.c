@@ -20,6 +20,9 @@
 pthread_barrier_t bar;
 
 #ifdef __x86_64__
+
+#define TICKS_MAX UINT64_MAX
+
 static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   uint32_t lo, hi;
   asm volatile("rdtsc" : "=a"(lo), "=d"(hi));
@@ -29,8 +32,11 @@ static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
 #endif
 
 #ifdef __aarch64__
+
+#define TICKS_MAX UINT32_MAX
+
 static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
-  uint64_t val;
+  ticks val;
   asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
 }
@@ -57,7 +63,7 @@ void *thread_handler(void *thread_args) {
 
     if (end < start) {
       // the counter overflow
-      current->results = (UINT64_MAX - start) + end;
+      current->results = (TICKS_MAX - start) + end;
     } else {
       current->results = (end - start);
     }

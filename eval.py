@@ -63,6 +63,8 @@ def calc(data, method, wcet, plot):
             tmp_res = list()
             # print(f'shape: {tuple([len(each_result[0]), len(each_result)])}')
             for each_task_index in range(len(each_result)):
+                if each_result[each_task_index][1] < 0:
+                    print(f'Error: {each_result[each_task_index][0]}: {each_result[each_task_index][1]}')
                 # print(each_result[each_task_index])
                 
                 if fill_names is False:
