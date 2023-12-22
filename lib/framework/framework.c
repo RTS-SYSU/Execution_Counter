@@ -54,7 +54,13 @@ void *thread_handler(void *thread_args) {
     start = get_CPU_Cycle();
     func(arg);
     end = get_CPU_Cycle();
-    current->results = (end - start);
+
+    if (end < start) {
+      // the counter overflow
+      current->results = (UINT64_MAX - start) + end;
+    } else {
+      current->results = (end - start);
+    }
 
     current++;
   }
