@@ -77,7 +77,7 @@ def calc(data, method, wcet, plot):
         res_core = np.array(res_core)
         if plot:
             for i in range(tasks):
-                plot_result([res_core[x][i] for x in range(len(res_core))], wcet[names[i]],f'Core: {core} Task: {names[i]}', f'core_{core}_task_{names[i]}.png')
+                plot_result([res_core[x][i] for x in range(len(res_core))], wcet[names[i]], f'Core: {core} Task: {names[i]}', f'core_{core}_task_{names[i]}.png')
         res_sum = np.sum(res_core, axis=0)
         for i in range(len(res_sum)):
             print(f'sum: {names[i]}: {res_sum[i]}')
@@ -138,5 +138,5 @@ if __name__ == '__main__':
     parser.add_argument("--calc", choices=["mean", "median", "max", "min", "std"], default=["mean", "median", "max", "min", "std"], help="Calculation method", nargs='+')
     parser.add_argument("--plot", action='store_true', help="Plot the result")
     
-    args = parser.parse_args()    
+    args = parser.parse_args()
     sys.exit(main(args))

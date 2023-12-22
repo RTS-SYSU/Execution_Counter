@@ -28,15 +28,12 @@ int main(int argc, const char **argv) {
     fprintf(stderr, helpMsg, argv[0]);
     exit(EXIT_FAILURE);
   }
-  if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+  if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
     fprintf(stderr, helpMsg, argv[0]);
     return 0;
   }
 
   uint64_t repeats = atoi(argv[1]);
-  fflush(stdout);
-  fflush(stdin);
-  fflush(stderr);
 
   // Create a 4K shared memory using mmap
   // This is used to store the results
@@ -49,6 +46,10 @@ int main(int argc, const char **argv) {
   json_node *result = create_result_json_array(coreinfo, &total_tasks);
 
   for (uint64_t i = 0; i < repeats; ++i) {
+    fflush(stdout);
+    fflush(stdin);
+    fflush(stderr);
+
     pid_t pid = fork();
     if (pid == -1) {
       perror("fork");
@@ -69,7 +70,9 @@ int main(int argc, const char **argv) {
       }
       void *dll = dlopen(LIB_NAME, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
-        fprintf(stderr, "Unable to open dll %s\n", LIB_NAME);
+        fprintf(stderr, "Unable to find dll %s\n", LIB_NAME);
+        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
+                        "containing the dll\n");
         exit(EXIT_FAILURE);
       }
 
