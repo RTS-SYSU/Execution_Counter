@@ -33,6 +33,18 @@ int main(int argc, const char **argv) {
     return 0;
   }
 
+  // get current path
+  char *path = getcwd(NULL, 0);
+  if (path == NULL) {
+    fprintf(stderr, "Failed to get current path\n");
+    exit(EXIT_FAILURE);
+  }
+  if (setenv("LD_LIBRARY_PATH", path, 1)) {
+    fprintf(stderr, "Failed to set LD_LIBRARY_PATH\n");
+    fprintf(stderr, "Please run this program with LD_LIBRARY_PATH=.\n");
+    exit(EXIT_FAILURE);
+  }
+
   uint64_t repeats = atoi(argv[1]);
   fflush(stdout);
   fflush(stdin);
@@ -98,8 +110,11 @@ int main(int argc, const char **argv) {
   munmap(memory, SHARED_MEMORY_SIZE);
   FILE *output = fopen(argv[3], "w");
   print_json(result, 0, output);
+  fprintf(output, "\n");
+  fflush(output);
   fclose(output);
   free_json_node(coreinfo);
   free_json_node(result);
+  free(path);
   return 0;
 }
