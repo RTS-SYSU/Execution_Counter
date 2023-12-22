@@ -40,6 +40,7 @@ int main(int argc, const char **argv) {
       (uint64_t *)mmap(NULL, SHARED_MEMORY_SIZE, PROT_READ | PROT_WRITE,
                        MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
+  memset(memory, 0, SHARED_MEMORY_SIZE);
   uint64_t total_tasks = 0;
   json_node *coreinfo = parse_json_file(argv[2]);
   json_node *result = create_result_json_array(coreinfo, &total_tasks);
