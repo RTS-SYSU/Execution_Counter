@@ -14,8 +14,6 @@
 #define _GNU_SOURCE
 #endif
 
-// May be we can do some json parsing here, so that we do not need to recompile
-// every time
 const char *helpMsg = "Usage: %s <repeats> <input_json> <output_json>\n";
 
 #define LIB_NAME "libtestfunc.so"

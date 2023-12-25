@@ -158,12 +158,15 @@ void free_test_args(uint64_t core, test_args *args) {
 }
 
 void get_result(uint64_t core, test_args *args, uint64_t *memory) {
-  size_t idx = 0;
+  size_t idx = 1;
   for (uint64_t i = 0; i < core; ++i) {
     for (uint64_t j = 0; j < args[i].current; ++j) {
       memory[idx++] = args[i].funcs[j].results;
     }
   }
+
+  // To record how many result
+  memory[0] = idx - 1;
 }
 
 test_args *parse_from_json(const char *json_file, uint64_t *cores) {
@@ -269,7 +272,7 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
 
   json_node *core = coreinfo->child;
   json_node *object = result->child;
-  size_t idx = 0;
+  size_t idx = 1;
 
   while (core) {
     json_node *tasks = json_get(core, "tasks")->child;
@@ -337,5 +340,12 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
 
     core = core->next;
     object = object->next;
+  }
+
+  // To check if any overflow happens
+  if (memory[0] != idx - 1) {
+    fprintf(stderr, "Error: Total read result is (%lu), but only write(%lu)\n",
+            idx, memory[0]);
+    exit(EXIT_FAILURE);
   }
 }
