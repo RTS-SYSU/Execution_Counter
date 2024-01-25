@@ -56,7 +56,6 @@ int main(int argc, const char **argv) {
 
     if (pid == 0) {
       // Child process
-
       // Make the child process run in real-time priority
       struct sched_param param;
       param.sched_priority = sched_get_priority_max(SCHED_FIFO);
@@ -87,7 +86,7 @@ int main(int argc, const char **argv) {
       int status = 0;
       wait(&status);
       if (status != 0) {
-        fprintf(stderr, "Child process exited with status %d\n", status);
+        fprintf(stderr, "Child process exited with status 0x%x\n", status);
         exit(EXIT_FAILURE);
       }
 
