@@ -33,12 +33,40 @@ static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
 
 #ifdef __aarch64__
 
+typedef uint64_t u64;
+
 #define TICKS_MAX UINT32_MAX
+
+#define L1_ICACHE_REFILL 1
+#define L1_DCACHE_REFILL 2
+#define L2_CACHE_REFILL 3
+#define ARMV8_PMCR_P (1 << 1)
 
 static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   ticks val;
   asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
+}
+
+static inline u64 read_event_counter(unsigned int counter) {
+  // select the performance counter, bits [4:0] of PMSELR_EL0
+  u64 cntr = ((u64)counter & 0x1F);
+  asm volatile("msr pmselr_el0, %[val]" : : [val] "r"(cntr));
+  // synchronize context
+  asm volatile("isb");
+  // read the counter
+  u64 events = 0;
+  asm volatile("mrs %[res], pmxevcntr_el0" : [res] "=r"(events));
+  return events;
+}
+
+/**
+ * Reset all event counters to zero (not including PMCCNTR_EL0).
+ */
+inline void reset_event_counters() {
+  u64 val = 0;
+  asm volatile("mrs %[val], pmcr_el0" : [val] "=r"(val));
+  asm volatile("msr pmcr_el0, %[val]" : : [val] "r"(val | ARMV8_PMCR_P));
 }
 #endif
 
@@ -58,8 +86,35 @@ void *thread_handler(void *thread_args) {
 
     ticks start, end;
     start = get_CPU_Cycle();
+    // #ifdef __aarch64__
+    //     uint64_t ic, dc, l2;
+    //     ic = read_event_counter(L1_ICACHE_REFILL);
+    //     dc = read_event_counter(L1_DCACHE_REFILL);
+    //     l2 = read_event_counter(L2_CACHE_REFILL);
+    // #endif
     func(arg);
     end = get_CPU_Cycle();
+    // #ifdef __aarch64__
+    //     uint64_t ic2, dc2, l22;
+    //     ic2 = read_event_counter(L1_ICACHE_REFILL);
+    //     dc2 = read_event_counter(L1_DCACHE_REFILL);
+    //     l22 = read_event_counter(L2_CACHE_REFILL);
+    //     if (ic2 < ic) {
+    //       ic2 = ic2 + (UINT64_MAX - ic);
+    //     } else {
+    //       ic2 = ic2 - ic;
+    //     }
+    //     if (dc2 < dc) {
+    //       dc2 = dc2 + (UINT64_MAX - dc);
+    //     } else {
+    //       dc2 = dc2 - dc;
+    //     }
+    //     if (l22 < l2) {
+    //       l22 = l22 + (UINT64_MAX - l2);
+    //     } else {
+    //       l22 = l22 - l2;
+    //     }
+    // #endif
 
     if (end < start) {
       // the counter overflow
@@ -67,7 +122,12 @@ void *thread_handler(void *thread_args) {
     } else {
       current->results = (end - start);
     }
-
+#ifdef __aarch64__
+    // get I, D, L2 cache miss
+    current->l1_i_miss = ic2;
+    current->l1_d_miss = dc2;
+    current->l2_miss = l22;
+#endif
     current++;
   }
   return (void *)0;
@@ -78,6 +138,10 @@ void start_test(uint64_t core, test_args *args) {
   pthread_t threads[core];
   cpu_set_t sets[core];
   // struct sched_param param[core];
+#ifdef __aarch64__
+  // reset all event counters
+  reset_event_counters();
+#endif
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
@@ -162,6 +226,11 @@ void get_result(uint64_t core, test_args *args, uint64_t *memory) {
   for (uint64_t i = 0; i < core; ++i) {
     for (uint64_t j = 0; j < args[i].current; ++j) {
       memory[idx++] = args[i].funcs[j].results;
+      // #ifdef __aarch64__
+      //       memory[idx++] = args[i].funcs[j].l1_i_miss;
+      //       memory[idx++] = args[i].funcs[j].l1_d_miss;
+      //       memory[idx++] = args[i].funcs[j].l2_miss;
+      // #endif
     }
   }
 
@@ -321,6 +390,28 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->child->child->next->type = JSON_INT;
         handler->child->child->next->key = TO_JSON_STRING("ticks");
         handler->child->child->next->val.val_as_int = memory[idx++];
+        // #ifdef __aarch64__
+        //         handler->child->child->next->next = create_json_node();
+        //         handler->child->child->next->next->type = JSON_INT;
+        //         handler->child->child->next->next->key =
+        //         TO_JSON_STRING("l1_i_miss");
+        //         handler->child->child->next->next->val.val_as_int =
+        //         memory[idx++]; handler->child->child->next->next->next =
+        //         create_json_node();
+        //         handler->child->child->next->next->next->type = JSON_INT;
+        //         handler->child->child->next->next->next->key =
+        //             TO_JSON_STRING("l1_d_miss");
+        //         handler->child->child->next->next->next->val.val_as_int =
+        //         memory[idx++]; handler->child->child->next->next->next->next
+        //         = create_json_node();
+        //         handler->child->child->next->next->next->next->type =
+        //         JSON_INT; handler->child->child->next->next->next->next->key
+        //         =
+        //             TO_JSON_STRING("l2_miss");
+        //         handler->child->child->next->next->next->next->val.val_as_int
+        //         =
+        //             memory[idx++];
+        // #endif
         handler = handler->child;
       } else {
         handler->next = create_json_node();
@@ -333,6 +424,27 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->next->child->next->type = JSON_INT;
         handler->next->child->next->key = TO_JSON_STRING("ticks");
         handler->next->child->next->val.val_as_int = memory[idx++];
+        // #ifdef __aarch64__
+        //         handler->next->child->next->next = create_json_node();
+        //         handler->next->child->next->next->type = JSON_INT;
+        //         handler->next->child->next->next->key =
+        //         TO_JSON_STRING("l1_i_miss");
+        //         handler->next->child->next->next->val.val_as_int =
+        //         memory[idx++]; handler->next->child->next->next->next =
+        //         create_json_node();
+        //         handler->next->child->next->next->next->type = JSON_INT;
+        //         handler->next->child->next->next->next->key =
+        //             TO_JSON_STRING("l1_d_miss");
+        //         handler->next->child->next->next->next->val.val_as_int =
+        //         memory[idx++]; handler->next->child->next->next->next->next =
+        //         create_json_node();
+        //         handler->next->child->next->next->next->next->type =
+        //         JSON_INT; handler->next->child->next->next->next->next->key =
+        //             TO_JSON_STRING("l2_miss");
+        //         handler->next->child->next->next->next->next->val.val_as_int
+        //         =
+        //             memory[idx++];
+        // #endif
         handler = handler->next;
       }
       tasks = tasks->next;

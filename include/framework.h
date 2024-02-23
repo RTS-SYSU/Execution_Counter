@@ -45,6 +45,13 @@ typedef struct {
   void *args;
   // ticks
   uint64_t results;
+  // #ifdef __aarch64__
+  //   // l1 cache miss
+  //   uint64_t l1_i_miss;
+  //   uint64_t l1_d_miss;
+  //   // l2 cache miss
+  //   uint64_t l2_miss;
+  // #endif
 } func_args;
 
 typedef struct {

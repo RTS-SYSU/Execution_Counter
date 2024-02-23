@@ -89,7 +89,6 @@ int main(int argc, const char **argv) {
         fprintf(stderr, "Child process exited with status 0x%x\n", status);
         exit(EXIT_FAILURE);
       }
-
       store_results(coreinfo, result, memory);
     }
 
