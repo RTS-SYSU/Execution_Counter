@@ -133,7 +133,7 @@ def main(args) -> int:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Evaluatioin')
+    parser = argparse.ArgumentParser('Evaluatioin Tools')
     
     parser.add_argument("--json", type=str, default='output.json', help='Json file to be evaluated')
     parser.add_argument("--wcet", type=str, default='wcet.json', help='Json file of wcet')
