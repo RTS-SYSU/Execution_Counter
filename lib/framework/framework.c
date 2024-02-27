@@ -122,12 +122,12 @@ void *thread_handler(void *thread_args) {
     } else {
       current->results = (end - start);
     }
-#ifdef __aarch64__
-    // get I, D, L2 cache miss
-    current->l1_i_miss = ic2;
-    current->l1_d_miss = dc2;
-    current->l2_miss = l22;
-#endif
+    // #ifdef __aarch64__
+    //     // get I, D, L2 cache miss
+    //     current->l1_i_miss = ic2;
+    //     current->l1_d_miss = dc2;
+    //     current->l2_miss = l22;
+    // #endif
     current++;
   }
   return (void *)0;
@@ -138,10 +138,10 @@ void start_test(uint64_t core, test_args *args) {
   pthread_t threads[core];
   cpu_set_t sets[core];
   // struct sched_param param[core];
-#ifdef __aarch64__
-  // reset all event counters
-  reset_event_counters();
-#endif
+  // #ifdef __aarch64__
+  //   // reset all event counters
+  //   reset_event_counters();
+  // #endif
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
