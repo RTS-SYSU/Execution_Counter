@@ -45,14 +45,19 @@ typedef struct {
   void *args;
   // ticks
   uint64_t results;
+  // #ifdef __aarch64__
+  //   // l1 cache miss
+  //   uint64_t l1_i_miss;
+  //   uint64_t l1_d_miss;
+  //   // l2 cache miss
+  //   uint64_t l2_miss;
+  // #endif
 } func_args;
 
 typedef struct {
   uint64_t size;
   uint64_t current;
   func_args *funcs;
-  // json handler, not freed by framework
-  json_node *result_handler;
 } test_args;
 
 /**
@@ -66,15 +71,18 @@ void add_function(test_args *args, char *funcname, fp funcptr, void *funargc);
 
 test_args *create_test_args(uint64_t core);
 
-test_args *parse_from_json(const char *json_file, const char *dllname,
-                           void *dll, uint64_t *core, json_node *result);
+test_args *parse_from_json(const char *json_file, uint64_t *core);
 
 void free_test_args(uint64_t core, test_args *args);
 
-void get_result(uint64_t core, test_args *args, uint64_t count);
+void get_result(uint64_t core, test_args *args, uint64_t *memory);
 
-void *reload_dll(const char *dllname, uint64_t core, test_args *args,
-                 void *dll);
+void load_dll(uint64_t core, test_args *args, const char *dllname, void *dll);
+
+json_node *create_result_json_array(const json_node *coreinfo,
+                                    uint64_t *total_tasks);
+
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory);
 
 #ifdef __cplusplus
 }
