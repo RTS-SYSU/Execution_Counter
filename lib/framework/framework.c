@@ -275,7 +275,7 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
     while (task != NULL) {
       char *funcname =
           TO_JSON_STRING(json_get(task, "function")->val.val_as_str);
-      char *dllname = json_get(task, "libs")->val.val_as_str;
+      char *dllname = json_get(task, "lib")->val.val_as_str;
       void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);

@@ -3,8 +3,8 @@
         "core": 0,
         "tasks": [
             {
-                "function": "my_loop",
-                "libs": "libtestfunc.so"
+                "function": "edn_start",
+                "lib": "libedn.so"
             }
         ]
     },
@@ -13,7 +13,7 @@
         "tasks": [
             {
                 "function": "my_loop2",
-                "libs": "libtestfunc.so"
+                "lib": "libtestfunc.so"
             }
         ]
     },
@@ -22,7 +22,7 @@
         "tasks": [
             {
                 "function": "my_loop3",
-                "libs": "libtestfunc.so"
+                "lib": "libtestfunc.so"
             }
         ]
     },
@@ -31,7 +31,7 @@
         "tasks": [
             {
                 "function": "my_loop4",
-                "libs": "libtestfunc.so"
+                "lib": "libtestfunc.so"
             }
         ]
     }
