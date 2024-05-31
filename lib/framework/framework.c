@@ -281,6 +281,7 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);
         fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
                         "containing the dll\n");
+        fprintf(stderr, "Error: %s\n", dlerror());
         exit(EXIT_FAILURE);
       }
       // TODO: maybe we can add an arguments later?
