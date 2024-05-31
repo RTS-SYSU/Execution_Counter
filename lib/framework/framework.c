@@ -81,8 +81,8 @@ void *thread_handler(void *thread_args) {
   for (uint64_t i = 0; i < total; ++i) {
     // function pointer
     fp func = (fp)current->funcptr;
-    // function arguments
-    void *arg = (void *)current->args;
+    // function arguments, for now it is not used
+    // void *arg = (void *)current->args;
 
     ticks start, end;
     start = get_CPU_Cycle();
@@ -92,7 +92,7 @@ void *thread_handler(void *thread_args) {
     //     dc = read_event_counter(L1_DCACHE_REFILL);
     //     l2 = read_event_counter(L2_CACHE_REFILL);
     // #endif
-    func(arg);
+    func();
     end = get_CPU_Cycle();
     // #ifdef __aarch64__
     //     uint64_t ic2, dc2, l22;
@@ -179,14 +179,21 @@ void start_test(uint64_t core, test_args *args) {
   // get_result(args, core);
 }
 
-void set_arg(func_args *arg, char *funcname, fp funcptr, void *args) {
+void set_arg(func_args *arg, char *funcname, fp funcptr, void *dll) {
   arg->funcname = funcname;
   arg->funcptr = funcptr;
-  arg->args = args;
+  arg->args = NULL;
   arg->results = 0;
+  arg->dll = dll;
 }
 
-void add_function(test_args *args, char *funcname, fp funcptr, void *funargc) {
+void add_function(test_args *args, char *funcname, void *dll,
+                  const char *dllname) {
+  fp funcptr = (fp)dlsym(dll, funcname);
+  if (funcptr == NULL) {
+    fprintf(stderr, "Unable to find func: %s in %s\n", funcname, dllname);
+    exit(EXIT_FAILURE);
+  }
   if (args->current >= args->size) {
     if (args->size != 0)
       args->size *= 2;
@@ -195,7 +202,7 @@ void add_function(test_args *args, char *funcname, fp funcptr, void *funargc) {
     args->funcs =
         (func_args *)realloc(args->funcs, sizeof(func_args) * args->size);
   }
-  set_arg(&args->funcs[args->current++], funcname, funcptr, funargc);
+  set_arg(&args->funcs[args->current++], funcname, funcptr, dll);
   return;
 }
 
@@ -215,6 +222,9 @@ void free_test_args(uint64_t core, test_args *args) {
     for (uint64_t j = 0; j < args[i].current; ++j) {
       free(args[i].funcs[j].funcname);
       free(args[i].funcs[j].args);
+      if (args[i].funcs[j].dll != NULL) {
+        dlclose(args[i].funcs[j].dll);
+      }
     }
     free(args[i].funcs);
   }
@@ -265,8 +275,16 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
     while (task != NULL) {
       char *funcname =
           TO_JSON_STRING(json_get(task, "function")->val.val_as_str);
+      char *dllname = json_get(task, "libs")->val.val_as_str;
+      void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
+      if (dll == NULL) {
+        fprintf(stderr, "Unable to find dll %s\n", dllname);
+        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
+                        "containing the dll\n");
+        exit(EXIT_FAILURE);
+      }
       // TODO: maybe we can add an arguments later?
-      add_function(args + cur, funcname, NULL, NULL);
+      add_function(args + cur, funcname, dll, dllname);
       task = task->next;
     }
     core = core->next;

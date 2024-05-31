@@ -3,7 +3,8 @@
         "core": 0,
         "tasks": [
             {
-                "function": "my_loop"
+                "function": "my_loop",
+                "libs": "libtestfunc.so"
             }
         ]
     },
@@ -11,7 +12,8 @@
         "core": 1,
         "tasks": [
             {
-                "function": "my_loop2"
+                "function": "my_loop2",
+                "libs": "libtestfunc.so"
             }
         ]
     },
@@ -19,7 +21,8 @@
         "core": 2,
         "tasks": [
             {
-                "function": "my_loop3"
+                "function": "my_loop3",
+                "libs": "libtestfunc.so"
             }
         ]
     },
@@ -27,7 +30,8 @@
         "core": 3,
         "tasks": [
             {
-                "function": "my_loop4"
+                "function": "my_loop4",
+                "libs": "libtestfunc.so"
             }
         ]
     }

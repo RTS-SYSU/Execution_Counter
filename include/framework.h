@@ -14,7 +14,7 @@ extern "C" {
 
 typedef uint64_t ticks;
 
-typedef void (*fp)(void *);
+typedef int (*fp)(void);
 
 // TODO: May be we can enable this feature in the future
 // typedef enum {
@@ -52,6 +52,7 @@ typedef struct {
   //   // l2 cache miss
   //   uint64_t l2_miss;
   // #endif
+  void *dll;
 } func_args;
 
 typedef struct {
@@ -67,7 +68,8 @@ void *thread_handler(void *arg);
 
 void start_test(uint64_t core, test_args *args);
 
-void add_function(test_args *args, char *funcname, fp funcptr, void *funargc);
+void add_function(test_args *args, char *funcname, void *dll,
+                  const char *dllname);
 
 test_args *create_test_args(uint64_t core);
 

@@ -16,7 +16,7 @@
 
 const char *helpMsg = "Usage: %s <repeats> <input_json> <output_json>\n";
 
-#define LIB_NAME "libtestfunc.so"
+// #define LIB_NAME "libtestfunc.so"
 
 #define SHARED_MEMORY_SIZE 4096
 
@@ -64,23 +64,23 @@ int main(int argc, const char **argv) {
         fprintf(stderr, "Please run this program as root\n");
         exit(EXIT_FAILURE);
       }
-      void *dll = dlopen(LIB_NAME, RTLD_NOW | RTLD_LOCAL);
-      if (dll == NULL) {
-        fprintf(stderr, "Unable to find dll %s\n", LIB_NAME);
-        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
-                        "containing the dll\n");
-        exit(EXIT_FAILURE);
-      }
+      // void *dll = dlopen(LIB_NAME, RTLD_NOW | RTLD_LOCAL);
+      // if (dll == NULL) {
+      //   fprintf(stderr, "Unable to find dll %s\n", LIB_NAME);
+      //   fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
+      //                   "containing the dll\n");
+      //   exit(EXIT_FAILURE);
+      // }
 
       uint64_t core = 0;
 
       test_args *args = parse_from_json(argv[2], &core);
-      load_dll(core, args, LIB_NAME, dll);
+      // load_dll(core, args, LIB_NAME, dll);
       start_test(core, args);
       get_result(core, args, memory);
 
       free_test_args(core, args);
-      dlclose(dll);
+      // dlclose(dll);
       exit(EXIT_SUCCESS);
     } else {
       int status = 0;
