@@ -134,7 +134,8 @@ void *thread_handler(void *thread_args) {
 }
 
 void start_test(uint64_t core, test_args *args) {
-  pthread_barrier_init(&bar, NULL, core);
+  // core + 1 for main thread
+  pthread_barrier_init(&bar, NULL, core + 1);
   pthread_t threads[core];
   cpu_set_t sets[core];
   // struct sched_param param[core];
@@ -172,9 +173,15 @@ void start_test(uint64_t core, test_args *args) {
     // }
   }
 
+  // barrier to make sure all threads are ready
+  pthread_barrier_wait(&bar);
+
   for (uint64_t i = 0; i < core; ++i) {
     pthread_join(threads[i], NULL);
   }
+
+  // release the barrier
+  pthread_barrier_destroy(&bar);
 
   // get_result(args, core);
 }
@@ -187,7 +194,9 @@ void set_arg(func_args *arg, char *funcname, fp funcptr, void *dll) {
   arg->dll = dll;
 }
 
-void add_function(test_args *args, char *funcname, void *dll,
+void add_function(test_args *args,
+                  char *funcname,
+                  void *dll,
                   const char *dllname) {
   fp funcptr = (fp)dlsym(dll, funcname);
   if (funcptr == NULL) {
@@ -279,8 +288,9 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
       void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);
-        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
-                        "containing the dll\n");
+        fprintf(stderr,
+                "Please set LD_LIBRARY_PATH to the directory "
+                "containing the dll\n");
         fprintf(stderr, "Error: %s\n", dlerror());
         exit(EXIT_FAILURE);
       }

@@ -3,8 +3,8 @@
         "core": 0,
         "tasks": [
             {
-                "function": "edn_start",
-                "lib": "libedn.so"
+                "function": "my_loop",
+                "lib": "libtestfunc.so"
             }
         ]
     },
