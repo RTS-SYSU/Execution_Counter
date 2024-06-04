@@ -335,9 +335,9 @@ void free_test_args(uint64_t core, test_args *args) {
         dlclose(args[i].funcs[j].dll);
       }
     }
-    if (args->perf_event_id != -1) {
-      close(args->perf_event_id);
-      free(args->attr);
+    if (args[i].perf_event_id != -1) {
+      close(args[i].perf_event_id);
+      free(args[i].attr);
     }
     free(args[i].funcs);
   }
