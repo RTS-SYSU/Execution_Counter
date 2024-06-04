@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -78,13 +79,25 @@ int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
   return syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
 }
 
-static inline __attribute__((always_inline)) uint64_t read_perf(int fd) {
+static inline __attribute__((always_inline)) uint64_t read_perf(int fd,
+                                                                int *start) {
   if (fd == -1) {
     // cpu cycle
     return get_CPU_Cycle();
   }
 
-  return 0;
+  if (*start == 0) {
+    // start the counter
+    ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+  } else {
+    // stop the counter
+    ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+  }
+
+  uint64_t val;
+  read(fd, &val, sizeof(uint64_t));
+  return val;
 }
 
 // static inline __attribute__((always_inline)) void
@@ -99,6 +112,7 @@ void *thread_handler(void *thread_args) {
   test_args *args = (test_args *)thread_args;
   uint64_t total = args->current;
   func_args *current = args->funcs;
+  int start_flag = 0;
 
   for (uint64_t i = 0; i < total; ++i) {
     // function pointer
@@ -107,7 +121,7 @@ void *thread_handler(void *thread_args) {
     // void *arg = (void *)current->args;
 
     ticks start, end;
-    start = read_perf(args->perf_event_id);
+    start = read_perf(args->perf_event_id, &start_flag);
     // #ifdef __aarch64__
     //     uint64_t ic, dc, l2;
     //     ic = read_event_counter(L1_ICACHE_REFILL);
@@ -115,7 +129,7 @@ void *thread_handler(void *thread_args) {
     //     l2 = read_event_counter(L2_CACHE_REFILL);
     // #endif
     func();
-    end = read_perf(args->perf_event_id);
+    end = read_perf(args->perf_event_id, &start_flag);
     // #ifdef __aarch64__
     //     uint64_t ic2, dc2, l22;
     //     ic2 = read_event_counter(L1_ICACHE_REFILL);
