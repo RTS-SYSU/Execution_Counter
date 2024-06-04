@@ -80,9 +80,10 @@ void start_test(uint64_t core, test_args *args);
 void add_function(test_args *args, char *funcname, void *dll,
                   const char *dllname);
 
-test_args *create_test_args(uint64_t core);
+test_args *create_test_args(uint64_t core, int perf_event_id);
 
-test_args *parse_from_json(const char *json_file, uint64_t *core);
+test_args *parse_from_json(const char *json_file, uint64_t *core,
+                           int perf_event_id);
 
 void free_test_args(uint64_t core, test_args *args);
 
@@ -93,7 +94,8 @@ void load_dll(uint64_t core, test_args *args, const char *dllname, void *dll);
 json_node *create_result_json_array(const json_node *coreinfo,
                                     uint64_t *total_tasks);
 
-void store_results(json_node *coreinfo, json_node *result, uint64_t *memory);
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory,
+                   const char *item);
 
 int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
                     int group_fd, unsigned long flags);

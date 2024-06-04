@@ -235,7 +235,7 @@ void add_function(test_args *args, char *funcname, void *dll,
   return;
 }
 
-test_args *create_test_args(uint64_t count) {
+test_args *create_test_args(uint64_t count, int perf_event_id) {
   test_args *args = (test_args *)malloc(sizeof(test_args) * count);
   if (args == NULL) {
     fprintf(stderr, "malloc failed: %s\n", strerror(errno));
@@ -243,6 +243,7 @@ test_args *create_test_args(uint64_t count) {
   }
 
   memset(args, 0, sizeof(test_args) * count);
+  args->perf_event_id = perf_event_id;
   return args;
 }
 
@@ -280,7 +281,8 @@ void get_result(uint64_t core, test_args *args, uint64_t *memory) {
   memory[0] = idx - 1;
 }
 
-test_args *parse_from_json(const char *json_file, uint64_t *cores) {
+test_args *parse_from_json(const char *json_file, uint64_t *cores,
+                           int perf_event_id) {
   json_node *root = parse_json_file(json_file);
   if (root == NULL) {
     fprintf(stderr, "Failed to parse json file: %s\n", json_file);
@@ -296,7 +298,7 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
     core = core->next;
   }
 
-  test_args *args = create_test_args(*cores);
+  test_args *args = create_test_args(*cores, perf_event_id);
 
   core = root->child;
 
@@ -384,7 +386,8 @@ json_node *create_result_json_array(const json_node *coreinfo,
   return result;
 }
 
-void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory,
+                   const char *item) {
   if (coreinfo == NULL || result == NULL) {
     fprintf(stderr, "coreinfo and result can not be NULL\n");
     exit(EXIT_FAILURE);
@@ -439,7 +442,7 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->child->child->val.val_as_str = TO_JSON_STRING(funcname);
         handler->child->child->next = create_json_node();
         handler->child->child->next->type = JSON_INT;
-        handler->child->child->next->key = TO_JSON_STRING("ticks");
+        handler->child->child->next->key = TO_JSON_STRING(item);
         handler->child->child->next->val.val_as_int = memory[idx++];
         // #ifdef __aarch64__
         //         handler->child->child->next->next = create_json_node();
@@ -473,7 +476,7 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->next->child->val.val_as_str = TO_JSON_STRING(funcname);
         handler->next->child->next = create_json_node();
         handler->next->child->next->type = JSON_INT;
-        handler->next->child->next->key = TO_JSON_STRING("ticks");
+        handler->next->child->next->key = TO_JSON_STRING(item);
         handler->next->child->next->val.val_as_int = memory[idx++];
         // #ifdef __aarch64__
         //         handler->next->child->next->next = create_json_node();

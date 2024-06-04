@@ -36,13 +36,52 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
   fprintf(stderr, "%s", help_perf_event);
 
 int main(int argc, const char **argv) {
-  if (argc < 2 || argc != 4) {
+  if (argc < 2 || (argc != 4 && argc != 6)) {
     PRINT_HELP;
     exit(EXIT_FAILURE);
   }
   if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
     PRINT_HELP;
     return 0;
+  }
+
+  int perf_id = -1;
+  const char *perf_item = "ticks";
+  if (argc == 6) {
+    if (strcmp(argv[4], "-e") != 0) {
+      PRINT_HELP;
+      exit(EXIT_FAILURE);
+    }
+    perf_id = atoi(argv[5]);
+    switch (perf_id) {
+    case 0:
+      perf_item = "cache-misses";
+      break;
+    case 1:
+      perf_item = "cache-references";
+      break;
+    case 2:
+      perf_item = "L1-icache-load-misses";
+      break;
+    case 3:
+      perf_item = "L1-dcache-load-misses";
+      break;
+    case 4:
+      perf_item = "L1-icache-loads";
+      break;
+    case 5:
+      perf_item = "L1-dcache-loads";
+      break;
+    case 6:
+      perf_item = "L1-dcache-store-misses";
+      break;
+    case 7:
+      perf_item = "bus-cycles";
+      break;
+    default:
+      PRINT_HELP;
+      exit(EXIT_FAILURE);
+    }
   }
 
   uint64_t repeats = atoi(argv[1]);
@@ -89,7 +128,10 @@ int main(int argc, const char **argv) {
 
       uint64_t core = 0;
 
-      test_args *args = parse_from_json(argv[2], &core);
+      // printf("perf_item: %s\n", perf_item);
+      // printf("perf_id: %d\n", perf_id);
+
+      test_args *args = parse_from_json(argv[2], &core, perf_id);
       // load_dll(core, args, LIB_NAME, dll);
       start_test(core, args);
       get_result(core, args, memory);
@@ -104,7 +146,7 @@ int main(int argc, const char **argv) {
         fprintf(stderr, "Child process exited with status 0x%x\n", status);
         exit(EXIT_FAILURE);
       }
-      store_results(coreinfo, result, memory);
+      store_results(coreinfo, result, memory, perf_item);
     }
 
     // Read the results and reset the cache for the next run
