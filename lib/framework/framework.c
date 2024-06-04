@@ -4,6 +4,8 @@
 
 #include <dlfcn.h>
 #include <errno.h>
+#include <linux/hw_breakpoint.h>
+#include <linux/perf_event.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stddef.h>
@@ -11,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "framework.h"
@@ -70,6 +73,25 @@ inline void reset_event_counters() {
 }
 #endif
 
+int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
+                    int group_fd, unsigned long flags) {
+  return syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
+}
+
+static inline __attribute__((always_inline)) uint64_t read_perf(int fd) {
+  if (fd == -1) {
+    // cpu cycle
+    return get_CPU_Cycle();
+  }
+
+  return 0;
+}
+
+// static inline __attribute__((always_inline)) void
+// read_perf_counter(int perf_fd, uint64_t *val) {
+//   read(perf_fd, val, sizeof(uint64_t));
+// }
+
 void *thread_handler(void *thread_args) {
   // use the barrier to make sure all threads are ready
   pthread_barrier_wait(&bar);
@@ -85,7 +107,7 @@ void *thread_handler(void *thread_args) {
     // void *arg = (void *)current->args;
 
     ticks start, end;
-    start = get_CPU_Cycle();
+    start = read_perf(args->perf_event_id);
     // #ifdef __aarch64__
     //     uint64_t ic, dc, l2;
     //     ic = read_event_counter(L1_ICACHE_REFILL);
@@ -93,7 +115,7 @@ void *thread_handler(void *thread_args) {
     //     l2 = read_event_counter(L2_CACHE_REFILL);
     // #endif
     func();
-    end = get_CPU_Cycle();
+    end = read_perf(args->perf_event_id);
     // #ifdef __aarch64__
     //     uint64_t ic2, dc2, l22;
     //     ic2 = read_event_counter(L1_ICACHE_REFILL);
@@ -194,9 +216,7 @@ void set_arg(func_args *arg, char *funcname, fp funcptr, void *dll) {
   arg->dll = dll;
 }
 
-void add_function(test_args *args,
-                  char *funcname,
-                  void *dll,
+void add_function(test_args *args, char *funcname, void *dll,
                   const char *dllname) {
   fp funcptr = (fp)dlsym(dll, funcname);
   if (funcptr == NULL) {
@@ -236,6 +256,9 @@ void free_test_args(uint64_t core, test_args *args) {
       }
     }
     free(args[i].funcs);
+  }
+  if (args->perf_event_id != -1) {
+    close(args->perf_event_id);
   }
   free(args);
 }
@@ -288,9 +311,8 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
       void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);
-        fprintf(stderr,
-                "Please set LD_LIBRARY_PATH to the directory "
-                "containing the dll\n");
+        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
+                        "containing the dll\n");
         fprintf(stderr, "Error: %s\n", dlerror());
         exit(EXIT_FAILURE);
       }

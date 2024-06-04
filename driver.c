@@ -14,19 +14,34 @@
 #define _GNU_SOURCE
 #endif
 
-const char *helpMsg = "Usage: %s <repeats> <input_json> <output_json>\n";
+const char *helpMsg =
+    "Usage: %s <repeats> <input_json> <output_json> [-e perf_event_id]\n";
+
+const char *help_perf_event = "\tCurrent support perf_event: \n"
+                              "\t\t0: cache-misses\n"
+                              "\t\t1: cache-references\n"
+                              "\t\t2: L1-icache-load-misses\n"
+                              "\t\t3: L1-dcache-load-misses\n"
+                              "\t\t4: L1-icache-loads\n"
+                              "\t\t5: L1-dcache-loads\n"
+                              "\t\t6: L1-dcache-store-misses\n"
+                              "\t\t7: bus-cycles\n";
 
 // #define LIB_NAME "libtestfunc.so"
 
 #define SHARED_MEMORY_SIZE 4096
 
+#define PRINT_HELP                                                             \
+  fprintf(stderr, helpMsg, argv[0]);                                           \
+  fprintf(stderr, "%s", help_perf_event);
+
 int main(int argc, const char **argv) {
   if (argc < 2 || argc != 4) {
-    fprintf(stderr, helpMsg, argv[0]);
+    PRINT_HELP;
     exit(EXIT_FAILURE);
   }
   if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-    fprintf(stderr, helpMsg, argv[0]);
+    PRINT_HELP;
     return 0;
   }
 

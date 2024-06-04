@@ -8,6 +8,11 @@
 #include "jsonobj.h"
 #include <stdint.h>
 
+#include <linux/hw_breakpoint.h>
+#include <linux/perf_event.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,6 +64,10 @@ typedef struct {
   uint64_t size;
   uint64_t current;
   func_args *funcs;
+  // fd for perf_event_open
+  // special case for perf_event_id = -1
+  // use -1 for no perf_event and enable cycle counter
+  int perf_event_id;
 } test_args;
 
 /**
@@ -85,6 +94,9 @@ json_node *create_result_json_array(const json_node *coreinfo,
                                     uint64_t *total_tasks);
 
 void store_results(json_node *coreinfo, json_node *result, uint64_t *memory);
+
+int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
+                    int group_fd, unsigned long flags);
 
 #ifdef __cplusplus
 }
