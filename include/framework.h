@@ -64,10 +64,13 @@ typedef struct {
   uint64_t size;
   uint64_t current;
   func_args *funcs;
+
+  int cpu;
   // fd for perf_event_open
   // special case for perf_event_id = -1
   // use -1 for no perf_event and enable cycle counter
   int perf_event_id;
+  struct perf_event_attr *attr;
 } test_args;
 
 /**

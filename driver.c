@@ -10,6 +10,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <linux/perf_event.h>
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif

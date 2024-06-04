@@ -243,7 +243,84 @@ test_args *create_test_args(uint64_t count, int perf_event_id) {
   }
 
   memset(args, 0, sizeof(test_args) * count);
-  args->perf_event_id = perf_event_id;
+
+  int cpu = 0;
+
+  for (uint64_t i = 0; i < count; ++i) {
+    if (perf_event_id == -1)
+      args[i].perf_event_id = perf_event_id;
+    else {
+      struct perf_event_attr *attr =
+          (struct perf_event_attr *)malloc(sizeof(struct perf_event_attr));
+      if (attr == NULL) {
+        fprintf(stderr, "malloc failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+      memset(attr, 0, sizeof(struct perf_event_attr));
+      attr->size = sizeof(struct perf_event_attr);
+      attr->exclude_kernel = 1;
+      attr->exclude_hv = 1;
+      attr->inherit = 1;
+      // int fd = -1;
+      switch (perf_event_id) {
+      case 0:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_CACHE_MISSES;
+        break;
+      case 1:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_CACHE_REFERENCES;
+        break;
+      case 2:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 3:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 4:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 5:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 6:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_WRITE << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 7:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_BUS_CYCLES;
+        break;
+      default:
+        fprintf(stderr, "Invalid perf_event_id: %d\n", perf_event_id);
+        exit(EXIT_FAILURE);
+      }
+
+      int fd = perf_event_open(attr, 0, cpu, -1, 0);
+      if (fd == -1) {
+        fprintf(stderr, "Error opening leader %llx\n", attr->config);
+        exit(EXIT_FAILURE);
+      }
+      args[i].perf_event_id = fd;
+      args[i].attr = attr;
+    }
+    ++cpu;
+  }
+
   return args;
 }
 
@@ -260,6 +337,7 @@ void free_test_args(uint64_t core, test_args *args) {
   }
   if (args->perf_event_id != -1) {
     close(args->perf_event_id);
+    free(args->attr);
   }
   free(args);
 }
