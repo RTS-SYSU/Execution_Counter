@@ -261,6 +261,7 @@ test_args *create_test_args(uint64_t count, int perf_event_id) {
       attr->exclude_kernel = 1;
       attr->exclude_hv = 1;
       attr->inherit = 1;
+      attr->disabled = 1;
       // int fd = -1;
       switch (perf_event_id) {
       case 0:
@@ -313,6 +314,7 @@ test_args *create_test_args(uint64_t count, int perf_event_id) {
       int fd = perf_event_open(attr, 0, cpu, -1, 0);
       if (fd == -1) {
         fprintf(stderr, "Error opening leader %llx\n", attr->config);
+        fprintf(stderr, "error: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
       }
       args[i].perf_event_id = fd;
@@ -333,11 +335,11 @@ void free_test_args(uint64_t core, test_args *args) {
         dlclose(args[i].funcs[j].dll);
       }
     }
+    if (args->perf_event_id != -1) {
+      close(args->perf_event_id);
+      free(args->attr);
+    }
     free(args[i].funcs);
-  }
-  if (args->perf_event_id != -1) {
-    close(args->perf_event_id);
-    free(args->attr);
   }
   free(args);
 }
