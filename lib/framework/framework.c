@@ -90,9 +90,12 @@ static inline __attribute__((always_inline)) uint64_t read_perf(int fd,
     // start the counter
     ioctl(fd, PERF_EVENT_IOC_RESET, 0);
     ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+    *start = 1;
+    return 0;
   } else {
     // stop the counter
     ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+    *start = 0;
   }
 
   uint64_t val;
