@@ -323,6 +323,30 @@ test_args *create_test_args(uint64_t count, int perf_event_id) {
         attr->type = PERF_TYPE_HARDWARE;
         attr->config = PERF_COUNT_HW_BUS_CYCLES;
         break;
+      case 8:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 9:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 10:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 11:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
       default:
         fprintf(stderr, "Invalid perf_event_id: %d\n", perf_event_id);
         exit(EXIT_FAILURE);

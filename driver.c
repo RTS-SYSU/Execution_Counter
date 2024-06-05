@@ -27,7 +27,11 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
                               "\t\t4: L1-icache-loads\n"
                               "\t\t5: L1-dcache-loads\n"
                               "\t\t6: L1-dcache-store-misses\n"
-                              "\t\t7: bus-cycles\n";
+                              "\t\t7: bus-cycles\n"
+                              "\t\t8: L1-icache-prefetch-misses\n"
+                              "\t\t9: L1-dcache-prefetch-misses\n"
+                              "\t\t10: L1-icache-prefetches\n"
+                              "\t\t11: L1-dcache-prefetches\n";
 
 // #define LIB_NAME "libtestfunc.so"
 
