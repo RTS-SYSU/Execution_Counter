@@ -42,7 +42,7 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
   fprintf(stderr, "%s", help_perf_event);
 
 int main(int argc, const char **argv) {
-  if (argc < 2 || (argc != 4 && argc != 6)) {
+  if (argc < 2 && argc != 4 && argc != 6) {
     PRINT_HELP;
     exit(EXIT_FAILURE);
   }
