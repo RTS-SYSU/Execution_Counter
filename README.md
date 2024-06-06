@@ -100,7 +100,7 @@ Usage: ./driver <repeats> <input_json> <output_json> [-e perf_event_id]
 
 By default, if you do not provide the event id, it will just count the cycles by `rdtsc` if you are using x86 or `pmccntr` if you are using ARM.
 
-Specially, for ARM user, please make sure you have the permission to access the `pmccntr`, by default, ARM does not allow user to access it in user space, you may refer [armv8_pmu_cycle_counter_el0](https://github.com/jerinjacobk/armv8_pmu_cycle_counter_el0) to install the kernel module to enable it.
+Specially, for ARM user, please make sure you have the permission to access the `pmccntr`. As by default, ARM does not allow user to access them in user space, you may refer [armv8_pmu_cycle_counter_el0](https://github.com/jerinjacobk/armv8_pmu_cycle_counter_el0) to install the kernel module to enable it.
 
 ## Evaluation
 

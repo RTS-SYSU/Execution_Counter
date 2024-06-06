@@ -42,11 +42,12 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
   fprintf(stderr, "%s", help_perf_event);
 
 int main(int argc, const char **argv) {
-  if (argc < 2 && argc != 4 && argc != 6) {
+  if (argc != 2 && argc != 4 && argc != 6) {
     PRINT_HELP;
     exit(EXIT_FAILURE);
   }
-  if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
+  if (argc == 2 &&
+      (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
     PRINT_HELP;
     return 0;
   }
@@ -55,6 +56,7 @@ int main(int argc, const char **argv) {
   const char *perf_item = "ticks";
   if (argc == 6) {
     if (strcmp(argv[4], "-e") != 0) {
+      fprintf(stderr, "Unsupported option: %s\n", argv[4]);
       PRINT_HELP;
       exit(EXIT_FAILURE);
     }
@@ -84,7 +86,20 @@ int main(int argc, const char **argv) {
     case 7:
       perf_item = "bus-cycles";
       break;
+    case 8:
+      perf_item = "L1-icache-prefetch-misses";
+      break;
+    case 9:
+      perf_item = "L1-dcache-prefetch-misses";
+      break;
+    case 10:
+      perf_item = "L1-icache-prefetches";
+      break;
+    case 11:
+      perf_item = "L1-dcache-prefetches";
+      break;
     default:
+      fprintf(stderr, "Unsupported perf_event_id: %d\n", perf_id);
       PRINT_HELP;
       exit(EXIT_FAILURE);
     }
