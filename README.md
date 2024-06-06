@@ -10,15 +10,54 @@ Please change the `CoreInfo.json` to change the test set.
 
 The `CoreInfo.json` is similar to what we used in [llvmta](https://github.com/RTS-SYSU/llvmta), you can check that project for further info, besides, we provide a simple example in [CoreInfo.json](./CoreInfo.json).
 
-## Advanced Usage
+Here is a example
 
-If you want to test your own test function, please follow below:
+```json
+[
+    {
+        "core": 0,
+        "tasks": [
+            {
+                "function": "my_loop",
+                "lib": "libtestfunc.so"
+            }
+        ]
+    },
+    {
+        "core": 1,
+        "tasks": [
+            {
+                "function": "my_loop2",
+                "lib": "libtestfunc.so"
+            }
+        ]
+    },
+    {
+        "core": 2,
+        "tasks": [
+            {
+                "function": "my_loop3",
+                "lib": "libtestfunc.so"
+            }
+        ]
+    },
+    {
+        "core": 3,
+        "tasks": [
+            {
+                "function": "my_loop4",
+                "lib": "libtestfunc.so"
+            }
+        ]
+    }
+]
+```
 
-1. Write your own test function in `test` directory, and make sure it returns a `void` and receives a `void*` as its only parameter.
+This will test the function `my_loop` in `libtestfunc.so` on core 0, `my_loop2` in `libtestfunc.so` on core 1, `my_loop3` in `libtestfunc.so` on core 2, and `my_loop4` in `libtestfunc.so` on core 3.
 
-2. Change the `CoreInfo.json` to use your own test function.
+Please make sure the `libtestfunc.so` is in the same directory with the `driver`, and the test function is marked with `extern "C"` if you are using C++.
 
-3. Compile and run as below.
+Note that all function prototype should be `void func(void *)`, and currently the argument is not used, it will always be `NULL`.
 
 ## Build
 
@@ -37,8 +76,31 @@ Note that by default, we use gcc to compile the framework and clang to compile t
 Please run it by 
 
 ```bash
-LD_LIBRARY_PATH=. ./driver <test iteration> <Core info.json> <output.json>
+LD_LIBRARY_PATH=. ./driver <test iteration> <Coreinfo.json> <output.json> [-e <event_id>]
 ```
+
+if you want to use the perf event counter, please provide the event id by `-e <event_id>`, you can use `./driver -h` to show, here is an example:
+
+```text
+Usage: ./driver <repeats> <input_json> <output_json> [-e perf_event_id]
+        Current support perf_event:
+                0: cache-misses
+                1: cache-references
+                2: L1-icache-load-misses
+                3: L1-dcache-load-misses
+                4: L1-icache-loads
+                5: L1-dcache-loads
+                6: L1-dcache-store-misses
+                7: bus-cycles
+                8: L1-icache-prefetch-misses
+                9: L1-dcache-prefetch-misses
+                10: L1-icache-prefetches
+                11: L1-dcache-prefetches
+```
+
+By default, if you do not provide the event id, it will just count the cycles by `rdtsc` if you are using x86 or `pmccntr` if you are using ARM.
+
+Specially, for ARM user, please make sure you have the permission to access the `pmccntr`, by default, ARM does not allow user to access it in user space, you may refer [armv8_pmu_cycle_counter_el0](https://github.com/jerinjacobk/armv8_pmu_cycle_counter_el0) to install the kernel module to enable it.
 
 ## Evaluation
 
