@@ -185,7 +185,8 @@ void start_test(uint64_t core, test_args *args) {
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
-    CPU_SET(i, &sets[i]);
+    // to avoid system on core 0
+    CPU_SET(i + 1, &sets[i]);
 
     int rc =
         pthread_create(&threads[i], NULL, thread_handler, (void *)(args + i));

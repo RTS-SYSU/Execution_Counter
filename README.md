@@ -102,6 +102,8 @@ By default, if you do not provide the event id, it will just count the cycles by
 
 Specially, for ARM user, please make sure you have the permission to access the `pmccntr`. As by default, ARM does not allow user to access them in user space, you may refer [armv8_pmu_cycle_counter_el0](https://github.com/jerinjacobk/armv8_pmu_cycle_counter_el0) to install the kernel module to enable it.
 
+Also note that not all OS support the perf event counter, you may need to check the support of your OS.
+
 ## Evaluation
 
 We also provide a simple evaluation script in `eval.py`, you can use it to evaluate the output json file.

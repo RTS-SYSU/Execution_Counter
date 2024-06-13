@@ -118,6 +118,15 @@ int main(int argc, const char **argv) {
   json_node *coreinfo = parse_json_file(argv[2]);
   json_node *result = create_result_json_array(coreinfo, &total_tasks);
 
+  // Make the main thread only run on CPU0
+  cpu_set_t mask;
+  CPU_ZERO(&mask);
+  CPU_SET(0, &mask);
+  if (sched_setaffinity(0, sizeof(mask), &mask) != 0) {
+    fprintf(stderr, "Failed to set affinity for main thread.\n");
+    exit(EXIT_FAILURE);
+  }
+
   for (uint64_t i = 0; i < repeats; ++i) {
     fflush(stdout);
     fflush(stdin);
