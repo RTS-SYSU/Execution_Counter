@@ -106,14 +106,68 @@ Also note that not all OS support the perf event counter, you may need to check 
 
 ## Evaluation
 
-We also provide a simple evaluation script in `eval.py`, you can use it to evaluate the output json file.
+> Note: for now, we do not provide the evaluation script in dev branch, you may need to write your own script to evaluate the result.
 
-Please be noted that you have to provide a json file looks like `wcet.json`, we provide an [example](./wcet.json), which is the result of [llvmta](https://github.com/RTS-SYSU/llvmta), and all arguments can be found by `python eval.py -h`.
+The default output is a json file, which is a list of core results, each core result contains a list of task results, each task result contains the function name and the ticks(or the perf event you choose) it takes.
 
-An example is shown below:
-
-```bash
-./eval.py --json output.json --wcet wcet.json --calc mean median max min std --plot
+```json
+[
+	{
+		"core": 0,
+		"results": [
+			{
+				"id": 0,
+				"tasks": [
+					{
+						"function": "my_loop",
+						"ticks": 798
+					}
+				]
+			}
+		]
+	},
+	{
+		"core": 1,
+		"results": [
+			{
+				"id": 0,
+				"tasks": [
+					{
+						"function": "my_loop2",
+						"ticks": 4484
+					}
+				]
+			}
+		]
+	},
+	{
+		"core": 2,
+		"results": [
+			{
+				"id": 0,
+				"tasks": [
+					{
+						"function": "my_loop3",
+						"ticks": 4332
+					}
+				]
+			}
+		]
+	},
+	{
+		"core": 3,
+		"results": [
+			{
+				"id": 0,
+				"tasks": [
+					{
+						"function": "my_loop4",
+						"ticks": 274322
+					}
+				]
+			}
+		]
+	}
+]
 ```
 
-This will show the results on the screen and plot the result in certain format.
