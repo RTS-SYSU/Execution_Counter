@@ -6,10 +6,10 @@
 #endif
 
 #include "jsonobj.h"
-#include <stdint.h>
 
 #include <linux/hw_breakpoint.h>
 #include <linux/perf_event.h>
+#include <stdint.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
@@ -48,15 +48,8 @@ typedef struct {
   fp funcptr;
   // function arguments, same as above, please manage it by yourself
   void *args;
-  // ticks
+  // ticks, or any other results read from perf event
   uint64_t results;
-  // #ifdef __aarch64__
-  //   // l1 cache miss
-  //   uint64_t l1_i_miss;
-  //   uint64_t l1_d_miss;
-  //   // l2 cache miss
-  //   uint64_t l2_miss;
-  // #endif
   void *dll;
 } func_args;
 

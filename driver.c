@@ -1,7 +1,12 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include "framework.h"
 #include "jsonobj.h"
 #include "jsonparser.h"
 #include <dlfcn.h>
+#include <linux/perf_event.h>
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,12 +14,6 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#include <linux/perf_event.h>
-
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
 
 const char *helpMsg =
     "Usage: %s <repeats> <input_json> <output_json> [-e perf_event_id]\n";
@@ -39,12 +38,15 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
 
 #define PRINT_HELP                                                             \
   fprintf(stderr, helpMsg, argv[0]);                                           \
-  fprintf(stderr, "%s", help_perf_event);
+  fprintf(stderr, "%s", help_perf_event)
+
+#define PRINT_HELP_EXIT(EXITCODE)                                              \
+  PRINT_HELP;                                                                  \
+  exit(EXITCODE)
 
 int main(int argc, const char **argv) {
   if (argc != 2 && argc != 4 && argc != 6) {
-    PRINT_HELP;
-    exit(EXIT_FAILURE);
+    PRINT_HELP_EXIT(EXIT_FAILURE);
   }
   if (argc == 2 &&
       (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)) {
@@ -57,8 +59,7 @@ int main(int argc, const char **argv) {
   if (argc == 6) {
     if (strcmp(argv[4], "-e") != 0) {
       fprintf(stderr, "Unsupported option: %s\n", argv[4]);
-      PRINT_HELP;
-      exit(EXIT_FAILURE);
+      PRINT_HELP_EXIT(EXIT_FAILURE);
     }
     perf_id = atoi(argv[5]);
     switch (perf_id) {
@@ -100,8 +101,7 @@ int main(int argc, const char **argv) {
       break;
     default:
       fprintf(stderr, "Unsupported perf_event_id: %d\n", perf_id);
-      PRINT_HELP;
-      exit(EXIT_FAILURE);
+      PRINT_HELP_EXIT(EXIT_FAILURE);
     }
   }
 

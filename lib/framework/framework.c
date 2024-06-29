@@ -41,37 +41,12 @@ typedef uint64_t u64;
 
 #define TICKS_MAX UINT32_MAX
 
-#define L1_ICACHE_REFILL 1
-#define L1_DCACHE_REFILL 2
-#define L2_CACHE_REFILL 3
-#define ARMV8_PMCR_P (1 << 1)
-
 static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   ticks val;
   asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
 }
 
-static inline u64 read_event_counter(unsigned int counter) {
-  // select the performance counter, bits [4:0] of PMSELR_EL0
-  u64 cntr = ((u64)counter & 0x1F);
-  asm volatile("msr pmselr_el0, %[val]" : : [val] "r"(cntr));
-  // synchronize context
-  asm volatile("isb");
-  // read the counter
-  u64 events = 0;
-  asm volatile("mrs %[res], pmxevcntr_el0" : [res] "=r"(events));
-  return events;
-}
-
-/**
- * Reset all event counters to zero (not including PMCCNTR_EL0).
- */
-inline void reset_event_counters() {
-  u64 val = 0;
-  asm volatile("mrs %[val], pmcr_el0" : [val] "=r"(val));
-  asm volatile("msr pmcr_el0, %[val]" : : [val] "r"(val | ARMV8_PMCR_P));
-}
 #endif
 
 int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
@@ -125,35 +100,8 @@ void *thread_handler(void *thread_args) {
 
     ticks start, end;
     start = read_perf(args->perf_event_id, &start_flag);
-    // #ifdef __aarch64__
-    //     uint64_t ic, dc, l2;
-    //     ic = read_event_counter(L1_ICACHE_REFILL);
-    //     dc = read_event_counter(L1_DCACHE_REFILL);
-    //     l2 = read_event_counter(L2_CACHE_REFILL);
-    // #endif
     func();
     end = read_perf(args->perf_event_id, &start_flag);
-    // #ifdef __aarch64__
-    //     uint64_t ic2, dc2, l22;
-    //     ic2 = read_event_counter(L1_ICACHE_REFILL);
-    //     dc2 = read_event_counter(L1_DCACHE_REFILL);
-    //     l22 = read_event_counter(L2_CACHE_REFILL);
-    //     if (ic2 < ic) {
-    //       ic2 = ic2 + (UINT64_MAX - ic);
-    //     } else {
-    //       ic2 = ic2 - ic;
-    //     }
-    //     if (dc2 < dc) {
-    //       dc2 = dc2 + (UINT64_MAX - dc);
-    //     } else {
-    //       dc2 = dc2 - dc;
-    //     }
-    //     if (l22 < l2) {
-    //       l22 = l22 + (UINT64_MAX - l2);
-    //     } else {
-    //       l22 = l22 - l2;
-    //     }
-    // #endif
 
     if (end < start) {
       // the counter overflow
@@ -161,12 +109,7 @@ void *thread_handler(void *thread_args) {
     } else {
       current->results = (end - start);
     }
-    // #ifdef __aarch64__
-    //     // get I, D, L2 cache miss
-    //     current->l1_i_miss = ic2;
-    //     current->l1_d_miss = dc2;
-    //     current->l2_miss = l22;
-    // #endif
+
     current++;
   }
   return (void *)0;
@@ -177,11 +120,6 @@ void start_test(uint64_t core, test_args *args) {
   pthread_barrier_init(&bar, NULL, core + 1);
   pthread_t threads[core];
   cpu_set_t sets[core];
-  // struct sched_param param[core];
-  // #ifdef __aarch64__
-  //   // reset all event counters
-  //   reset_event_counters();
-  // #endif
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
