@@ -30,7 +30,8 @@ const char *help_perf_event = "\tCurrent support perf_event: \n"
                               "\t\t8: L1-icache-prefetch-misses\n"
                               "\t\t9: L1-dcache-prefetch-misses\n"
                               "\t\t10: L1-icache-prefetches\n"
-                              "\t\t11: L1-dcache-prefetches\n";
+                              "\t\t11: L1-dcache-prefetches\n"
+                              "\t\t12: instructions\n";
 
 // #define LIB_NAME "libtestfunc.so"
 
@@ -98,6 +99,9 @@ int main(int argc, const char **argv) {
       break;
     case 11:
       perf_item = "L1-dcache-prefetches";
+      break;
+    case 12:
+      perf_item = "instructions";
       break;
     default:
       fprintf(stderr, "Unsupported perf_event_id: %d\n", perf_id);
