@@ -4,6 +4,8 @@
 
 #include <dlfcn.h>
 #include <errno.h>
+#include <linux/hw_breakpoint.h>
+#include <linux/perf_event.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stddef.h>
@@ -11,6 +13,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 #include "framework.h"
@@ -37,38 +41,47 @@ typedef uint64_t u64;
 
 #define TICKS_MAX UINT32_MAX
 
-#define L1_ICACHE_REFILL 1
-#define L1_DCACHE_REFILL 2
-#define L2_CACHE_REFILL 3
-#define ARMV8_PMCR_P (1 << 1)
-
 static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
   ticks val;
   asm volatile("mrs %0, pmccntr_el0" : "=r"(val));
   return val;
 }
 
-static inline u64 read_event_counter(unsigned int counter) {
-  // select the performance counter, bits [4:0] of PMSELR_EL0
-  u64 cntr = ((u64)counter & 0x1F);
-  asm volatile("msr pmselr_el0, %[val]" : : [val] "r"(cntr));
-  // synchronize context
-  asm volatile("isb");
-  // read the counter
-  u64 events = 0;
-  asm volatile("mrs %[res], pmxevcntr_el0" : [res] "=r"(events));
-  return events;
+#endif
+
+int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
+                    int group_fd, unsigned long flags) {
+  return syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
 }
 
-/**
- * Reset all event counters to zero (not including PMCCNTR_EL0).
- */
-inline void reset_event_counters() {
-  u64 val = 0;
-  asm volatile("mrs %[val], pmcr_el0" : [val] "=r"(val));
-  asm volatile("msr pmcr_el0, %[val]" : : [val] "r"(val | ARMV8_PMCR_P));
+static inline __attribute__((always_inline)) uint64_t read_perf(int fd,
+                                                                int *start) {
+  if (fd == -1) {
+    // cpu cycle
+    return get_CPU_Cycle();
+  }
+
+  if (*start == 0) {
+    // start the counter
+    ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+    ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+    *start = 1;
+    return 0;
+  } else {
+    // stop the counter
+    ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+    *start = 0;
+  }
+
+  uint64_t val;
+  read(fd, &val, sizeof(uint64_t));
+  return val;
 }
-#endif
+
+// static inline __attribute__((always_inline)) void
+// read_perf_counter(int perf_fd, uint64_t *val) {
+//   read(perf_fd, val, sizeof(uint64_t));
+// }
 
 void *thread_handler(void *thread_args) {
   // use the barrier to make sure all threads are ready
@@ -77,6 +90,7 @@ void *thread_handler(void *thread_args) {
   test_args *args = (test_args *)thread_args;
   uint64_t total = args->current;
   func_args *current = args->funcs;
+  int start_flag = 0;
 
   for (uint64_t i = 0; i < total; ++i) {
     // function pointer
@@ -85,36 +99,9 @@ void *thread_handler(void *thread_args) {
     // void *arg = (void *)current->args;
 
     ticks start, end;
-    start = get_CPU_Cycle();
-    // #ifdef __aarch64__
-    //     uint64_t ic, dc, l2;
-    //     ic = read_event_counter(L1_ICACHE_REFILL);
-    //     dc = read_event_counter(L1_DCACHE_REFILL);
-    //     l2 = read_event_counter(L2_CACHE_REFILL);
-    // #endif
+    start = read_perf(args->perf_event_id, &start_flag);
     func();
-    end = get_CPU_Cycle();
-    // #ifdef __aarch64__
-    //     uint64_t ic2, dc2, l22;
-    //     ic2 = read_event_counter(L1_ICACHE_REFILL);
-    //     dc2 = read_event_counter(L1_DCACHE_REFILL);
-    //     l22 = read_event_counter(L2_CACHE_REFILL);
-    //     if (ic2 < ic) {
-    //       ic2 = ic2 + (UINT64_MAX - ic);
-    //     } else {
-    //       ic2 = ic2 - ic;
-    //     }
-    //     if (dc2 < dc) {
-    //       dc2 = dc2 + (UINT64_MAX - dc);
-    //     } else {
-    //       dc2 = dc2 - dc;
-    //     }
-    //     if (l22 < l2) {
-    //       l22 = l22 + (UINT64_MAX - l2);
-    //     } else {
-    //       l22 = l22 - l2;
-    //     }
-    // #endif
+    end = read_perf(args->perf_event_id, &start_flag);
 
     if (end < start) {
       // the counter overflow
@@ -122,12 +109,7 @@ void *thread_handler(void *thread_args) {
     } else {
       current->results = (end - start);
     }
-    // #ifdef __aarch64__
-    //     // get I, D, L2 cache miss
-    //     current->l1_i_miss = ic2;
-    //     current->l1_d_miss = dc2;
-    //     current->l2_miss = l22;
-    // #endif
+
     current++;
   }
   return (void *)0;
@@ -138,15 +120,11 @@ void start_test(uint64_t core, test_args *args) {
   pthread_barrier_init(&bar, NULL, core + 1);
   pthread_t threads[core];
   cpu_set_t sets[core];
-  // struct sched_param param[core];
-  // #ifdef __aarch64__
-  //   // reset all event counters
-  //   reset_event_counters();
-  // #endif
 
   for (uint64_t i = 0; i < core; ++i) {
     CPU_ZERO(&sets[i]);
-    CPU_SET(i, &sets[i]);
+    // to avoid system on core 0
+    CPU_SET(i + 1, &sets[i]);
 
     int rc =
         pthread_create(&threads[i], NULL, thread_handler, (void *)(args + i));
@@ -194,9 +172,7 @@ void set_arg(func_args *arg, char *funcname, fp funcptr, void *dll) {
   arg->dll = dll;
 }
 
-void add_function(test_args *args,
-                  char *funcname,
-                  void *dll,
+void add_function(test_args *args, char *funcname, void *dll,
                   const char *dllname) {
   fp funcptr = (fp)dlsym(dll, funcname);
   if (funcptr == NULL) {
@@ -215,7 +191,7 @@ void add_function(test_args *args,
   return;
 }
 
-test_args *create_test_args(uint64_t count) {
+test_args *create_test_args(uint64_t count, int perf_event_id) {
   test_args *args = (test_args *)malloc(sizeof(test_args) * count);
   if (args == NULL) {
     fprintf(stderr, "malloc failed: %s\n", strerror(errno));
@@ -223,6 +199,114 @@ test_args *create_test_args(uint64_t count) {
   }
 
   memset(args, 0, sizeof(test_args) * count);
+
+  int cpu = 0;
+
+  for (uint64_t i = 0; i < count; ++i) {
+    if (perf_event_id == -1)
+      args[i].perf_event_id = perf_event_id;
+    else {
+      struct perf_event_attr *attr =
+          (struct perf_event_attr *)malloc(sizeof(struct perf_event_attr));
+      if (attr == NULL) {
+        fprintf(stderr, "malloc failed: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+      memset(attr, 0, sizeof(struct perf_event_attr));
+      attr->size = sizeof(struct perf_event_attr);
+      attr->exclude_kernel = 1;
+      attr->exclude_hv = 1;
+      attr->inherit = 1;
+      attr->disabled = 1;
+      // int fd = -1;
+      switch (perf_event_id) {
+      case 0:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_CACHE_MISSES;
+        break;
+      case 1:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_CACHE_REFERENCES;
+        break;
+      case 2:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 3:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 4:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 5:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 6:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_WRITE << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 7:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_BUS_CYCLES;
+        break;
+      case 8:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 9:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+        break;
+      case 10:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1I |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 11:
+        attr->type = PERF_TYPE_HW_CACHE;
+        attr->config = PERF_COUNT_HW_CACHE_L1D |
+                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+        break;
+      case 12:
+        attr->type = PERF_TYPE_HARDWARE;
+        attr->config = PERF_COUNT_HW_INSTRUCTIONS;
+        break;
+      default:
+        fprintf(stderr, "Invalid perf_event_id: %d\n", perf_event_id);
+        exit(EXIT_FAILURE);
+      }
+
+      int fd = perf_event_open(attr, 0, cpu, -1, 0);
+      if (fd == -1) {
+        fprintf(stderr, "Error opening leader %llx\n", attr->config);
+        fprintf(stderr, "error: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+      }
+      args[i].perf_event_id = fd;
+      args[i].attr = attr;
+    }
+    ++cpu;
+  }
+
   return args;
 }
 
@@ -234,6 +318,10 @@ void free_test_args(uint64_t core, test_args *args) {
       if (args[i].funcs[j].dll != NULL) {
         dlclose(args[i].funcs[j].dll);
       }
+    }
+    if (args[i].perf_event_id != -1) {
+      close(args[i].perf_event_id);
+      free(args[i].attr);
     }
     free(args[i].funcs);
   }
@@ -257,7 +345,8 @@ void get_result(uint64_t core, test_args *args, uint64_t *memory) {
   memory[0] = idx - 1;
 }
 
-test_args *parse_from_json(const char *json_file, uint64_t *cores) {
+test_args *parse_from_json(const char *json_file, uint64_t *cores,
+                           int perf_event_id) {
   json_node *root = parse_json_file(json_file);
   if (root == NULL) {
     fprintf(stderr, "Failed to parse json file: %s\n", json_file);
@@ -273,7 +362,7 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
     core = core->next;
   }
 
-  test_args *args = create_test_args(*cores);
+  test_args *args = create_test_args(*cores, perf_event_id);
 
   core = root->child;
 
@@ -288,9 +377,8 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores) {
       void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);
-        fprintf(stderr,
-                "Please set LD_LIBRARY_PATH to the directory "
-                "containing the dll\n");
+        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
+                        "containing the dll\n");
         fprintf(stderr, "Error: %s\n", dlerror());
         exit(EXIT_FAILURE);
       }
@@ -362,7 +450,8 @@ json_node *create_result_json_array(const json_node *coreinfo,
   return result;
 }
 
-void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory,
+                   const char *item) {
   if (coreinfo == NULL || result == NULL) {
     fprintf(stderr, "coreinfo and result can not be NULL\n");
     exit(EXIT_FAILURE);
@@ -417,7 +506,7 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->child->child->val.val_as_str = TO_JSON_STRING(funcname);
         handler->child->child->next = create_json_node();
         handler->child->child->next->type = JSON_INT;
-        handler->child->child->next->key = TO_JSON_STRING("ticks");
+        handler->child->child->next->key = TO_JSON_STRING(item);
         handler->child->child->next->val.val_as_int = memory[idx++];
         // #ifdef __aarch64__
         //         handler->child->child->next->next = create_json_node();
@@ -451,7 +540,7 @@ void store_results(json_node *coreinfo, json_node *result, uint64_t *memory) {
         handler->next->child->val.val_as_str = TO_JSON_STRING(funcname);
         handler->next->child->next = create_json_node();
         handler->next->child->next->type = JSON_INT;
-        handler->next->child->next->key = TO_JSON_STRING("ticks");
+        handler->next->child->next->key = TO_JSON_STRING(item);
         handler->next->child->next->val.val_as_int = memory[idx++];
         // #ifdef __aarch64__
         //         handler->next->child->next->next = create_json_node();

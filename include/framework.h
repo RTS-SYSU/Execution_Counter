@@ -6,7 +6,12 @@
 #endif
 
 #include "jsonobj.h"
+
+#include <linux/hw_breakpoint.h>
+#include <linux/perf_event.h>
 #include <stdint.h>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,15 +48,8 @@ typedef struct {
   fp funcptr;
   // function arguments, same as above, please manage it by yourself
   void *args;
-  // ticks
+  // ticks, or any other results read from perf event
   uint64_t results;
-  // #ifdef __aarch64__
-  //   // l1 cache miss
-  //   uint64_t l1_i_miss;
-  //   uint64_t l1_d_miss;
-  //   // l2 cache miss
-  //   uint64_t l2_miss;
-  // #endif
   void *dll;
 } func_args;
 
@@ -59,6 +57,13 @@ typedef struct {
   uint64_t size;
   uint64_t current;
   func_args *funcs;
+
+  int cpu;
+  // fd for perf_event_open
+  // special case for perf_event_id = -1
+  // use -1 for no perf_event and enable cycle counter
+  int perf_event_id;
+  struct perf_event_attr *attr;
 } test_args;
 
 /**
@@ -71,9 +76,10 @@ void start_test(uint64_t core, test_args *args);
 void add_function(test_args *args, char *funcname, void *dll,
                   const char *dllname);
 
-test_args *create_test_args(uint64_t core);
+test_args *create_test_args(uint64_t core, int perf_event_id);
 
-test_args *parse_from_json(const char *json_file, uint64_t *core);
+test_args *parse_from_json(const char *json_file, uint64_t *core,
+                           int perf_event_id);
 
 void free_test_args(uint64_t core, test_args *args);
 
@@ -84,7 +90,11 @@ void load_dll(uint64_t core, test_args *args, const char *dllname, void *dll);
 json_node *create_result_json_array(const json_node *coreinfo,
                                     uint64_t *total_tasks);
 
-void store_results(json_node *coreinfo, json_node *result, uint64_t *memory);
+void store_results(json_node *coreinfo, json_node *result, uint64_t *memory,
+                   const char *item);
+
+int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
+                    int group_fd, unsigned long flags);
 
 #ifdef __cplusplus
 }
