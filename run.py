@@ -30,10 +30,11 @@ parser = ArgumentParser(description='Execution Counter Script')
 parser.add_argument('-r', '--repeat', type=int, default=10000,
                     help='Number of times to repeat the execution')
 parser.add_argument('-e', '--event', type=str, default='cycles',
-                    choices=list(PERF_EVENT_DICT.keys()),
+                    choices=sorted(list(PERF_EVENT_DICT.keys()),
+                                   key=lambda x: PERF_EVENT_DICT[x]),
                     help='Event to count (default: cycles, using PMU or perf_event_open())')
 parser.add_argument('-j', '--json', type=str, default='./json',
-                    help='Directory to store the test json files')
+                    help='Directory where the test JSON files are stored')
 parser.add_argument('-o', '--output', type=str, default='./results',
                     help='Directory to store the test results')
 

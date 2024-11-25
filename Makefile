@@ -1,6 +1,11 @@
 CC := gcc
 TEST_CC ?= gcc
 
+# Add support for Cross-Compilation
+CROSS_COMPILE ?=
+CC := $(CROSS_COMPILE)$(CC)
+TEST_CC := $(CROSS_COMPILE)$(TEST_CC)
+
 MODE ?= Release
 
 ifeq ($(MODE), Release)
@@ -62,7 +67,7 @@ $(TESTOBJ): %.o:%.c
 	$(TEST_CC) $(DEFAULT_FLAGS) $(TEST_FLAGS) -c $< -o $@
 
 $(JSONLIB):
-	$(MAKE) -C lib/json lib
+	$(MAKE) -C lib/json lib CC=$(CC)
 	@ln -s lib/json/libjson.so libjson.so
 
 clean: 
