@@ -74,7 +74,13 @@ static inline __attribute__((always_inline)) uint64_t read_perf(int fd,
   }
 
   uint64_t val;
-  read(fd, &val, sizeof(uint64_t));
+  ssize_t _read = read(fd, &val, sizeof(uint64_t));
+
+  if (_read == -1) {
+    fprintf(stderr, "Error reading perf event: %s\n", strerror(errno));
+    exit(EXIT_FAILURE);
+  }
+
   return val;
 }
 
