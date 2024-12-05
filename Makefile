@@ -80,7 +80,7 @@ $(TESTOBJ): %.o:%.c
 	$(TEST_CC) $(SHARED) $(TEST_FLAGS) -c $< -o $@
 
 $(JSONLIB):
-	$(MAKE) -C lib/json lib CC="$(CC)"
+	$(MAKE) -C lib/json lib 
 	@ln -s lib/json/libjson.so libjson.so
 
 clean: 
