@@ -93,6 +93,4 @@ clean:
 	rm -rf $(JSONLIB)
 	$(MAKE) -C lib/json clean
 
-rebuild:
-	@(MAKE) clean
-	@(MAKE) all
+rebuild: clean all
