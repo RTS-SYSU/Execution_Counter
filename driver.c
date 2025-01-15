@@ -2,47 +2,49 @@
 #define _GNU_SOURCE
 #endif
 
-#include "framework.h"
-#include "jsonobj.h"
-#include "jsonparser.h"
 #include <dlfcn.h>
 #include <linux/perf_event.h>
 #include <sched.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "framework.h"
+#include "jsonobj.h"
+#include "jsonparser.h"
 
 const char *helpMsg =
     "Usage: %s <repeats> <input_json> <output_json> [-e perf_event_id]\n";
 
-const char *help_perf_event = "\tCurrent support perf_event: \n"
-                              "\t\t0: cache-misses\n"
-                              "\t\t1: cache-references\n"
-                              "\t\t2: L1-icache-load-misses\n"
-                              "\t\t3: L1-dcache-load-misses\n"
-                              "\t\t4: L1-icache-loads\n"
-                              "\t\t5: L1-dcache-loads\n"
-                              "\t\t6: L1-dcache-store-misses\n"
-                              "\t\t7: bus-cycles\n"
-                              "\t\t8: L1-icache-prefetch-misses\n"
-                              "\t\t9: L1-dcache-prefetch-misses\n"
-                              "\t\t10: L1-icache-prefetches\n"
-                              "\t\t11: L1-dcache-prefetches\n"
-                              "\t\t12: instructions\n";
+const char *help_perf_event =
+    "\tCurrent support perf_event: \n"
+    "\t\t0: cache-misses\n"
+    "\t\t1: cache-references\n"
+    "\t\t2: L1-icache-load-misses\n"
+    "\t\t3: L1-dcache-load-misses\n"
+    "\t\t4: L1-icache-loads\n"
+    "\t\t5: L1-dcache-loads\n"
+    "\t\t6: L1-dcache-store-misses\n"
+    "\t\t7: bus-cycles\n"
+    "\t\t8: L1-icache-prefetch-misses\n"
+    "\t\t9: L1-dcache-prefetch-misses\n"
+    "\t\t10: L1-icache-prefetches\n"
+    "\t\t11: L1-dcache-prefetches\n"
+    "\t\t12: instructions\n";
 
 // #define LIB_NAME "libtestfunc.so"
 
 #define SHARED_MEMORY_SIZE 4096
 
-#define PRINT_HELP                                                             \
-  fprintf(stderr, helpMsg, argv[0]);                                           \
+#define PRINT_HELP                   \
+  fprintf(stderr, helpMsg, argv[0]); \
   fprintf(stderr, "%s", help_perf_event)
 
-#define PRINT_HELP_EXIT(EXITCODE)                                              \
-  PRINT_HELP;                                                                  \
+#define PRINT_HELP_EXIT(EXITCODE) \
+  PRINT_HELP;                     \
   exit(EXITCODE)
 
 int main(int argc, const char **argv) {
@@ -64,48 +66,48 @@ int main(int argc, const char **argv) {
     }
     perf_id = atoi(argv[5]);
     switch (perf_id) {
-    case 0:
-      perf_item = "cache-misses";
-      break;
-    case 1:
-      perf_item = "cache-references";
-      break;
-    case 2:
-      perf_item = "L1-icache-load-misses";
-      break;
-    case 3:
-      perf_item = "L1-dcache-load-misses";
-      break;
-    case 4:
-      perf_item = "L1-icache-loads";
-      break;
-    case 5:
-      perf_item = "L1-dcache-loads";
-      break;
-    case 6:
-      perf_item = "L1-dcache-store-misses";
-      break;
-    case 7:
-      perf_item = "bus-cycles";
-      break;
-    case 8:
-      perf_item = "L1-icache-prefetch-misses";
-      break;
-    case 9:
-      perf_item = "L1-dcache-prefetch-misses";
-      break;
-    case 10:
-      perf_item = "L1-icache-prefetches";
-      break;
-    case 11:
-      perf_item = "L1-dcache-prefetches";
-      break;
-    case 12:
-      perf_item = "instructions";
-      break;
-    default:
-      fprintf(stderr, "Unsupported perf_event_id: %d\n", perf_id);
-      PRINT_HELP_EXIT(EXIT_FAILURE);
+      case 0:
+        perf_item = "cache-misses";
+        break;
+      case 1:
+        perf_item = "cache-references";
+        break;
+      case 2:
+        perf_item = "L1-icache-load-misses";
+        break;
+      case 3:
+        perf_item = "L1-dcache-load-misses";
+        break;
+      case 4:
+        perf_item = "L1-icache-loads";
+        break;
+      case 5:
+        perf_item = "L1-dcache-loads";
+        break;
+      case 6:
+        perf_item = "L1-dcache-store-misses";
+        break;
+      case 7:
+        perf_item = "bus-cycles";
+        break;
+      case 8:
+        perf_item = "L1-icache-prefetch-misses";
+        break;
+      case 9:
+        perf_item = "L1-dcache-prefetch-misses";
+        break;
+      case 10:
+        perf_item = "L1-icache-prefetches";
+        break;
+      case 11:
+        perf_item = "L1-dcache-prefetches";
+        break;
+      case 12:
+        perf_item = "instructions";
+        break;
+      default:
+        fprintf(stderr, "Unsupported perf_event_id: %d\n", perf_id);
+        PRINT_HELP_EXIT(EXIT_FAILURE);
     }
   }
 
