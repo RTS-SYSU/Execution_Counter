@@ -49,8 +49,11 @@ static inline __attribute__((always_inline)) ticks get_CPU_Cycle() {
 
 #endif
 
-int perf_event_open(struct perf_event_attr *attr, pid_t pid, int cpu,
-                    int group_fd, unsigned long flags) {
+int perf_event_open(struct perf_event_attr *attr,
+                    pid_t pid,
+                    int cpu,
+                    int group_fd,
+                    unsigned long flags) {
   return syscall(__NR_perf_event_open, attr, pid, cpu, group_fd, flags);
 }
 
@@ -178,7 +181,9 @@ void set_arg(func_args *arg, char *funcname, fp funcptr, void *dll) {
   arg->dll = dll;
 }
 
-void add_function(test_args *args, char *funcname, void *dll,
+void add_function(test_args *args,
+                  char *funcname,
+                  void *dll,
                   const char *dllname) {
   fp funcptr = (fp)dlsym(dll, funcname);
   if (funcptr == NULL) {
@@ -226,79 +231,79 @@ test_args *create_test_args(uint64_t count, int perf_event_id) {
       attr->disabled = 1;
       // int fd = -1;
       switch (perf_event_id) {
-      case 0:
-        attr->type = PERF_TYPE_HARDWARE;
-        attr->config = PERF_COUNT_HW_CACHE_MISSES;
-        break;
-      case 1:
-        attr->type = PERF_TYPE_HARDWARE;
-        attr->config = PERF_COUNT_HW_CACHE_REFERENCES;
-        break;
-      case 2:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1I |
-                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-        break;
-      case 3:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1D |
-                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-        break;
-      case 4:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1I |
-                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
-        break;
-      case 5:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1D |
-                       (PERF_COUNT_HW_CACHE_OP_READ << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
-        break;
-      case 6:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1D |
-                       (PERF_COUNT_HW_CACHE_OP_WRITE << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-        break;
-      case 7:
-        attr->type = PERF_TYPE_HARDWARE;
-        attr->config = PERF_COUNT_HW_BUS_CYCLES;
-        break;
-      case 8:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1I |
-                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-        break;
-      case 9:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1D |
-                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
-        break;
-      case 10:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1I |
-                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
-        break;
-      case 11:
-        attr->type = PERF_TYPE_HW_CACHE;
-        attr->config = PERF_COUNT_HW_CACHE_L1D |
-                       (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
-                       (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
-        break;
-      case 12:
-        attr->type = PERF_TYPE_HARDWARE;
-        attr->config = PERF_COUNT_HW_INSTRUCTIONS;
-        break;
-      default:
-        fprintf(stderr, "Invalid perf_event_id: %d\n", perf_event_id);
-        exit(EXIT_FAILURE);
+        case 0:
+          attr->type = PERF_TYPE_HARDWARE;
+          attr->config = PERF_COUNT_HW_CACHE_MISSES;
+          break;
+        case 1:
+          attr->type = PERF_TYPE_HARDWARE;
+          attr->config = PERF_COUNT_HW_CACHE_REFERENCES;
+          break;
+        case 2:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1I |
+                         (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+          break;
+        case 3:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1D |
+                         (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+          break;
+        case 4:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1I |
+                         (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+          break;
+        case 5:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1D |
+                         (PERF_COUNT_HW_CACHE_OP_READ << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+          break;
+        case 6:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1D |
+                         (PERF_COUNT_HW_CACHE_OP_WRITE << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+          break;
+        case 7:
+          attr->type = PERF_TYPE_HARDWARE;
+          attr->config = PERF_COUNT_HW_BUS_CYCLES;
+          break;
+        case 8:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1I |
+                         (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+          break;
+        case 9:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1D |
+                         (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_MISS << 16);
+          break;
+        case 10:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1I |
+                         (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+          break;
+        case 11:
+          attr->type = PERF_TYPE_HW_CACHE;
+          attr->config = PERF_COUNT_HW_CACHE_L1D |
+                         (PERF_COUNT_HW_CACHE_OP_PREFETCH << 8) |
+                         (PERF_COUNT_HW_CACHE_RESULT_ACCESS << 16);
+          break;
+        case 12:
+          attr->type = PERF_TYPE_HARDWARE;
+          attr->config = PERF_COUNT_HW_INSTRUCTIONS;
+          break;
+        default:
+          fprintf(stderr, "Invalid perf_event_id: %d\n", perf_event_id);
+          exit(EXIT_FAILURE);
       }
 
       int fd = perf_event_open(attr, 0, cpu, -1, 0);
@@ -351,9 +356,29 @@ void get_result(uint64_t core, test_args *args, uint64_t *memory) {
   memory[0] = idx - 1;
 }
 
-test_args *parse_from_json(const char *json_file, uint64_t *cores,
+test_args *parse_from_json(const char *json_file,
+                           uint64_t *cores,
                            int perf_event_id) {
-  json_node *root = parse_json_file(json_file);
+  json_node *root_ptr = parse_json_file(json_file);
+
+  if (root_ptr == NULL) {
+    fprintf(stderr, "Failed to parse json file: %s\n", json_file);
+    exit(EXIT_FAILURE);
+  }
+
+  if (root_ptr->type != JSON_OBJECT) {
+    fprintf(stderr, "Invalid json file: %s\n", json_file);
+    exit(EXIT_FAILURE);
+  }
+
+  json_node *root = root_ptr->child;
+  // Get the "entries" node
+  if (root == NULL) {
+    fprintf(stderr, "Failed to parse json file: %s\n", json_file);
+    exit(EXIT_FAILURE);
+  }
+  root = json_get(root, "entries");
+
   if (root == NULL) {
     fprintf(stderr, "Failed to parse json file: %s\n", json_file);
     exit(EXIT_FAILURE);
@@ -383,8 +408,9 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores,
       void *dll = dlopen(dllname, RTLD_NOW | RTLD_LOCAL);
       if (dll == NULL) {
         fprintf(stderr, "Unable to find dll %s\n", dllname);
-        fprintf(stderr, "Please set LD_LIBRARY_PATH to the directory "
-                        "containing the dll\n");
+        fprintf(stderr,
+                "Please set LD_LIBRARY_PATH to the directory "
+                "containing the dll\n");
         fprintf(stderr, "Error: %s\n", dlerror());
         exit(EXIT_FAILURE);
       }
@@ -395,7 +421,7 @@ test_args *parse_from_json(const char *json_file, uint64_t *cores,
     core = core->next;
   }
 
-  free_json_node(root);
+  free_json_node(root_ptr);
   return args;
 }
 
@@ -456,7 +482,9 @@ json_node *create_result_json_array(const json_node *coreinfo,
   return result;
 }
 
-void store_results(json_node *coreinfo, json_node *result, uint64_t *memory,
+void store_results(json_node *coreinfo,
+                   json_node *result,
+                   uint64_t *memory,
                    const char *item) {
   if (coreinfo == NULL || result == NULL) {
     fprintf(stderr, "coreinfo and result can not be NULL\n");

@@ -1,38 +1,55 @@
-[
-    {
-        "core": 0,
-        "tasks": [
-            {
-                "function": "my_loop",
-                "lib": "libtestfunc.so"
+{
+    "system": {
+        "cpu": "inorder",
+        "memory": {
+            "L1I$": {
+                "LineSize": 64,
+                "Associativity": 3,
+                "Latency": 7,
+                "Set": 256
+            },
+            "L1D$": {
+                "LineSize": 64,
+                "Associativity": 2,
+                "Latency": 7,
+                "Set": 256,
+                "WriteBack": true,
+                "WriteAlloc": true
+            },
+            "L2$": {
+                "LineSize": 64,
+                "Associativity": 4,
+                "Latency": 11,
+                "Set": 1024
+            },
+            "mem": {
+                "Latency": 220,
+                "PerWordLatency": 1
+            },
+            "analysis": {
+                "PersistenceAnalysis": true,
+                "SharePersistenceAnalysis": true
             }
-        ]
+        }
     },
-    {
-        "core": 1,
-        "tasks": [
-            {
-                "function": "my_loop2",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    },
-    {
-        "core": 2,
-        "tasks": [
-            {
-                "function": "my_loop3",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    },
-    {
-        "core": 3,
-        "tasks": [
-            {
-                "function": "my_loop4",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    }
-]
+    "entries": [
+        {
+            "core": 0,
+            "tasks": [
+                {
+                    "function": "my_loop",
+                    "lib": "libtestfunc.so"
+                }
+            ]
+        },
+        {
+            "core": 1,
+            "tasks": [
+                {
+                    "function": "my_loop2",
+                    "lib": "libtestfunc.so"
+                }
+            ]
+        }
+    ]
+}

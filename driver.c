@@ -121,7 +121,8 @@ int main(int argc, const char **argv) {
 
   memset(memory, 0, SHARED_MEMORY_SIZE);
   uint64_t total_tasks = 0;
-  json_node *coreinfo = parse_json_file(argv[2]);
+  json_node *coreinfo_ptr = parse_json_file(argv[2]);
+  json_node *coreinfo = json_get(coreinfo_ptr, "entries");
   json_node *result = create_result_json_array(coreinfo, &total_tasks);
 
   // Make the main thread only run on CPU0
