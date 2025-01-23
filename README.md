@@ -8,49 +8,33 @@ Please change the `CoreInfo.json` to change the test set.
 
 ## Basic Usage
 
-The `CoreInfo.json` is similar to what we used in [llvmta](https://github.com/RTS-SYSU/llvmta), you can check that project for further info, besides, we provide a simple example in [CoreInfo.json](./CoreInfo.json).
+The `CoreInfo.json` is similar to what we used in [llvmta](https://github.com/RTS-SYSU/llvmta), you can check that project for further info, besides, we provide a simple example in [CoreInfo.json](./CoreInfo.json). And note that only the `entries` field is used in this project, other fields are for other purpose.
 
 Here is a example
 
 ```json
-[
-    {
-        "core": 0,
-        "tasks": [
-            {
-                "function": "my_loop",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    },
-    {
-        "core": 1,
-        "tasks": [
-            {
-                "function": "my_loop2",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    },
-    {
-        "core": 2,
-        "tasks": [
-            {
-                "function": "my_loop3",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    },
-    {
-        "core": 3,
-        "tasks": [
-            {
-                "function": "my_loop4",
-                "lib": "libtestfunc.so"
-            }
-        ]
-    }
-]
+{
+    "entries": [
+        {
+            "core": 0,
+            "tasks": [
+                {
+                    "function": "my_loop",
+                    "lib": "libtestfunc.so"
+                }
+            ]
+        },
+        {
+            "core": 1,
+            "tasks": [
+                {
+                    "function": "my_loop2",
+                    "lib": "libtestfunc.so"
+                }
+            ]
+        }
+    ]
+}
 ```
 
 This will test the function `my_loop` in `libtestfunc.so` on core 1, `my_loop2` in `libtestfunc.so` on core 2, `my_loop3` in `libtestfunc.so` on core 3, and `my_loop4` in `libtestfunc.so` on core 4, while core 0 in reserved for the system.
