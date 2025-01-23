@@ -16,7 +16,7 @@ SHARED := -fPIC -shared
 ifeq ($(MODE), Release)
 	CC_FLAGS := -O3 -Wall -Werror
 else ifeq ($(MODE), Debug)
-	CC_FLAGS := -O0 -g -fPIC -Wall -Werror
+	CC_FLAGS := -O0 -g -Wall -Werror
 endif
 
 # Add $ADD_FLAGS to CC_FLAGS
@@ -62,7 +62,7 @@ all: $(DRIVER)
 test: $(TESTLIB)
 
 $(DRIVER): $(DRIVEROBJ) $(JSONLIB) $(FRAMELIB)
-	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -ldl -lc $(FRAMELIB) $(JSONLIB)
+	$(CC) $(CC_FLAGS) $(LIBINCLUDE) $(DRIVERINCLUDE) -o $@ $< -lpthread -ldl -lc $(FRAMELIB) $(JSONLIB) 
 
 $(DRIVEROBJ): %.o:%.c
 	$(CC) $(CC_FLAGS) $(SHARED) $(LIBINCLUDE) $(DRIVERINCLUDE) -c $< -o $@
