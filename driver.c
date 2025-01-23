@@ -200,7 +200,7 @@ int main(int argc, const char **argv) {
   fprintf(output, "\n");
   fflush(output);
   fclose(output);
-  free_json_node(coreinfo);
+  free_json_node(coreinfo_ptr);
   free_json_node(result);
   return 0;
 }
